@@ -1,0 +1,24 @@
+apply plugin: "java"
+apply plugin: "maven"
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+task copyToLib(type: Copy) {
+    into "$buildDir/resources/main/lib"
+    from configurations.runtime
+}
+
+jar.dependsOn copyToLib
+
+dependencies {
+    compile 'javax.activation:activation:1.1'
+    compile 'org.apache.hadoop:hadoop-core:1.2.1'
+    compile 'com.spectralogic:DS3Client:0.0.9-SNAPSHOT'
+    testCompile 'junit:junit:4.11'
+}
