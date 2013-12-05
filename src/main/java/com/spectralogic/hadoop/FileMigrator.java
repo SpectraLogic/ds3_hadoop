@@ -69,7 +69,7 @@ public class FileMigrator {
         hdfs = FileSystem.get(new Configuration());
 
         conf = new JobConf(FileMigrator.class);
-        conf.setJobName("File Prep");
+        conf.setJobName("FileMigrator");
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(LongWritable.class);
 
@@ -79,6 +79,8 @@ public class FileMigrator {
 
         conf.setInputFormat(TextInputFormat.class);
         conf.setOutputFormat(TextOutputFormat.class);
+
+        conf.set("bucket", bucket);
     }
 
     public void run() throws IOException, XmlProcessingException, FailedRequestException, SignatureException {
@@ -102,10 +104,8 @@ public class FileMigrator {
         System.out.println("----- Priming DS3 -----");
 
 
-
         FileInputFormat.setInputPaths(conf, inputDirectory);
         FileOutputFormat.setOutputPath(conf, outputDirectory);
-
 
 
         System.out.println("----- Starting job -----");
@@ -148,22 +148,22 @@ public class FileMigrator {
         return obj;
     }
 
+    private static Arguments processArgs(final String args[]) throws IOException, MissingOptionException {
+        final Arguments arguments = new Arguments();
+        final Options options = arguments.getOptions();
+        final GenericOptionsParser optParser = new GenericOptionsParser(new Configuration(), options, args);
+
+        arguments.processCommandLine(optParser.getCommandLine());
+
+        return arguments;
+    }
+
     public static void main(final String args[]) throws IOException, XmlProcessingException, FailedRequestException, SignatureException, MissingOptionException {
-        final FileMigrator migrator = getMigrator(args);
+        final Arguments arguments = processArgs(args);
+        final FileMigrator migrator = new FileMigrator(arguments);
+
         //migrator.run();
     }
 
 
-
-    private static FileMigrator getMigrator(final String args[]) throws IOException, MissingOptionException {
-
-        final Arguments arguments = new Arguments();
-
-        final Options options = arguments.getOptions();
-        final GenericOptionsParser optParser = new GenericOptionsParser(options, args);
-
-        arguments.processCommandLine(optParser.getCommandLine());
-
-        return new FileMigrator(arguments);
-    }
 }

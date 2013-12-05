@@ -13,27 +13,27 @@ public class Arguments {
     private String srcDir;
     private String destDir;
     private String endpoint;
+    private String accessKey;
+    private String secretKey;
 
     public Arguments() {
         options = new Options();
 
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint");
-        ds3Endpoint.setRequired(true);
-
         final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
-        sourceDirectory.setRequired(true);
-
         final Option destDirectory = new Option("o", true, "The output directory where any errors will be reported");
-        sourceDirectory.setRequired(true);
-
         final Option bucket = new Option("b", true, "The ds3 bucket to copy to");
-        bucket.setRequired(true);
+        final Option accessKey = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
+        final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
 
         final Option help = new Option("h", "Print Help Menu");
+
         options.addOption(ds3Endpoint);
         options.addOption(sourceDirectory);
         options.addOption(destDirectory);
         options.addOption(bucket);
+        options.addOption(accessKey);
+        options.addOption(secretKey);
         options.addOption(help);
 
     }
@@ -43,7 +43,7 @@ public class Arguments {
     }
 
     protected void processCommandLine(final CommandLine cmd) throws MissingOptionException {
-        if(cmd.hasOption("h")) {
+        if(cmd.hasOption('h')) {
             printHelp();
             System.exit(0);
         }
@@ -52,8 +52,26 @@ public class Arguments {
         this.setDestDir(cmd.getOptionValue("o"));
         this.setSrcDir(cmd.getOptionValue("i"));
         this.setEndpoint(cmd.getOptionValue("e"));
+        this.setAccessKey(cmd.getOptionValue("a"));
+        this.setSecretKey(cmd.getOptionValue("k"));
 
         final List<String> missingArgs = getMissingArgs();
+
+        if(getSecretKey() == null) {
+            final String key = System.getenv("DS3_SECRET_KEY");
+            if(key == null) {
+                missingArgs.add("k");
+            }
+
+        }
+
+        if(getAccessKey() == null) {
+            final String key = System.getenv("DS3_ACCESS_KEY");
+            if(key == null) {
+                missingArgs.add("a");
+            }
+        }
+
         if(!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
@@ -118,4 +136,19 @@ public class Arguments {
         this.endpoint = endpoint;
     }
 
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    private void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    private void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
 }

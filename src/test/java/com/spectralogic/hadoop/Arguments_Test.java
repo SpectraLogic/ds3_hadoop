@@ -1,7 +1,11 @@
 package com.spectralogic.hadoop;
 
 import org.apache.commons.cli.*;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -9,19 +13,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class Arguments_Test {
 
     @Test(expected = MissingOptionException.class)
-    public void hasNoArgs() throws ParseException {
+    public void hasNoArgs() throws ParseException, IOException {
         final Arguments arguments = new Arguments();
 
-        final Parser parser = new BasicParser();
-        parser.parse(arguments.getOptions(), new String[0]);
+        final String[] args = new String[0];
+        final GenericOptionsParser optParser = new GenericOptionsParser(new Configuration(), arguments.getOptions(), args);
+        final CommandLine cmd = optParser.getCommandLine();
+        arguments.processCommandLine(cmd);
     }
 
     @Test
-    public void hasArgs() throws ParseException {
+    public void hasArgs() throws ParseException, IOException {
         final Arguments arguments = new Arguments();
         final Parser parser = new BasicParser();
 
-        final String[] args = new String[8];
+        final String[] args = new String[12];
         args[0] = "-b";
         args[1] = "bucketName!";
         args[2] = "-e";
@@ -30,8 +36,13 @@ public class Arguments_Test {
         args[5] = "/users/user/directory";
         args[6] = "-o";
         args[7] = "/users/user/output";
+        args[8] = "-k";
+        args[9] = "MyKey";
+        args[10] = "-a";
+        args[11] = "accessId";
 
-        final CommandLine cmd = parser.parse(arguments.getOptions(), args);
+        final GenericOptionsParser optParser = new GenericOptionsParser(new Configuration(), arguments.getOptions(), args);
+        final CommandLine cmd = optParser.getCommandLine();
         arguments.processCommandLine(cmd);
 
         assertThat(cmd.hasOption("b"), is(true));
