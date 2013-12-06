@@ -1,6 +1,8 @@
 package com.spectralogic.hadoop;
 
 import org.apache.commons.cli.*;
+import org.apache.hadoop.conf.Configuration;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.List;
 public class Arguments {
 
     private final Options options;
+    private final Configuration configuration;
 
     private String bucket;
     private String srcDir;
@@ -18,6 +21,7 @@ public class Arguments {
 
     public Arguments() {
         options = new Options();
+        configuration = new Configuration();
 
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint");
         ds3Endpoint.setArgName("url");
@@ -107,7 +111,7 @@ public class Arguments {
 
     public void printHelp() {
         final HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp("hdfs -jar FileMigrator.jar", options);
+        helpFormatter.printHelp("hdfs -jar FileMigrator.jar com.spectralogic.hadoop.FileMigrator", options);
     }
 
     public String getBucket() {
@@ -156,5 +160,9 @@ public class Arguments {
 
     private void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
     }
 }

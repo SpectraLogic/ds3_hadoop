@@ -66,7 +66,7 @@ public class FileMigrator {
         inputDirectory = new Path(arguments.getSrcDir());
         outputDirectory = new Path(arguments.getDestDir());
 
-        hdfs = FileSystem.get(new Configuration());
+        hdfs = FileSystem.get(arguments.getConfiguration());
 
         conf = new JobConf(FileMigrator.class);
         conf.setJobName("FileMigrator");
@@ -81,6 +81,9 @@ public class FileMigrator {
         conf.setOutputFormat(TextOutputFormat.class);
 
         conf.set("bucket", bucket);
+        conf.set("accessKeyId", arguments.getAccessKey());
+        conf.set("secretKey", arguments.getSecretKey());
+        conf.set("endpoint", arguments.getEndpoint());
     }
 
     public void run() throws IOException, XmlProcessingException, FailedRequestException, SignatureException {
@@ -101,8 +104,8 @@ public class FileMigrator {
         }
         writer.close();
 
-        System.out.println("----- Priming DS3 -----");
 
+        System.out.println("----- Priming DS3 -----");
 
         FileInputFormat.setInputPaths(conf, inputDirectory);
         FileOutputFormat.setOutputPath(conf, outputDirectory);
@@ -112,6 +115,7 @@ public class FileMigrator {
 
         final RunningJob runningJob = JobClient.runJob(conf);
         runningJob.waitForCompletion();
+
 
         System.out.println("----- Finished Job -----");
     }
@@ -151,7 +155,7 @@ public class FileMigrator {
     private static Arguments processArgs(final String args[]) throws IOException, MissingOptionException {
         final Arguments arguments = new Arguments();
         final Options options = arguments.getOptions();
-        final GenericOptionsParser optParser = new GenericOptionsParser(new Configuration(), options, args);
+        final GenericOptionsParser optParser = new GenericOptionsParser(arguments.getConfiguration(), options, args);
 
         arguments.processCommandLine(optParser.getCommandLine());
 
@@ -162,8 +166,7 @@ public class FileMigrator {
         final Arguments arguments = processArgs(args);
         final FileMigrator migrator = new FileMigrator(arguments);
 
-        //migrator.run();
+        migrator.run();
     }
-
 
 }
