@@ -20,11 +20,17 @@ public class Arguments {
         options = new Options();
 
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint");
+        ds3Endpoint.setArgName("url");
         final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
+        sourceDirectory.setArgName("directory");
         final Option destDirectory = new Option("o", true, "The output directory where any errors will be reported");
+        destDirectory.setArgName("directory");
         final Option bucket = new Option("b", true, "The ds3 bucket to copy to");
+        bucket.setArgName("bucket");
         final Option accessKey = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
+        accessKey.setArgName("accessKeyId");
         final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
+        secretKey.setArgName("secretKey");
 
         final Option help = new Option("h", "Print Help Menu");
 
