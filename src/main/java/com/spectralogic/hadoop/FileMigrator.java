@@ -7,7 +7,6 @@ import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.models.Objects;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.*;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -17,6 +16,7 @@ import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.security.SignatureException;
 import java.util.*;
 
@@ -59,13 +59,12 @@ public class FileMigrator {
     }
 
     public FileMigrator(final Arguments arguments) throws IOException {
-        final Ds3ClientBuilder builder = new Ds3ClientBuilder("192.168.56.101",new Credentials("cnlhbg==","Secureryan"));
-        ds3Client = builder.withHttpSecure(false).withPort(8080).build();
+        final Ds3ClientBuilder builder = new Ds3ClientBuilder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
+        ds3Client = builder.withHttpSecure(arguments.isSecure()).withPort(arguments.getPort()).build();
 
-        bucket = arguments.getBucket();
         inputDirectory = new Path(arguments.getSrcDir());
         outputDirectory = new Path(arguments.getDestDir());
-
+        bucket = arguments.getBucket();
         hdfs = FileSystem.get(arguments.getConfiguration());
 
         conf = new JobConf(FileMigrator.class);
@@ -93,6 +92,8 @@ public class FileMigrator {
         final List<FileStatus> fileList = getFileList(inputDirectory);
         final List<Ds3Object> objectList = convertFileStatusList(fileList);
 
+        verifyBucketExists();
+        System.out.println("Files to perform bulk put for: " + objectList.toString());
         final MasterObjectList masterObjectList = ds3Client.bulkPut("/"+ bucket +"/", objectList);
 
         final File tempFile = File.createTempFile("migrator","dat");
@@ -103,7 +104,6 @@ public class FileMigrator {
             }
         }
         writer.close();
-
 
         System.out.println("----- Priming DS3 -----");
 
@@ -119,6 +119,7 @@ public class FileMigrator {
 
         System.out.println("----- Finished Job -----");
     }
+
 
     public List<FileStatus> getFileList(final Path directoryPath) throws IOException {
         final ArrayList<FileStatus> fileList = new ArrayList<FileStatus>();
@@ -147,7 +148,11 @@ public class FileMigrator {
 
     private Ds3Object fileStatusToDs3Object(final FileStatus fileStatus) {
         final Ds3Object obj = new Ds3Object();
-        obj.setName(fileStatus.getPath().toString());
+        try {
+            obj.setName(PathUtils.stripPath(fileStatus.getPath().toString()));
+        } catch (URISyntaxException e) {
+            System.err.println("The uri passed in was invalid.  This should not happen.");
+        }
         obj.setSize(fileStatus.getLen());
         return obj;
     }
@@ -160,6 +165,24 @@ public class FileMigrator {
         arguments.processCommandLine(optParser.getCommandLine());
 
         return arguments;
+    }
+
+    /**
+     * Verifies to see if the bucket exists, and if it doesn't, creates it.
+      * @throws FailedRequestException
+     * @throws SignatureException
+     * @throws IOException
+     */
+    private void verifyBucketExists() throws FailedRequestException, SignatureException, IOException {
+        System.out.println("Verify bucket exists.");
+        final ListAllMyBucketsResult bucketList = ds3Client.getService();
+        System.out.println("got buckets back: " + bucketList.toString());
+        for(final Bucket bucketInstance: bucketList.getBuckets()) {
+            if(bucketInstance.getName().equalsIgnoreCase(bucket)) {
+                System.out.println("Didn't find bucket, creating.");
+                ds3Client.createBucket(bucket);
+            }
+        }
     }
 
     public static void main(final String args[]) throws IOException, XmlProcessingException, FailedRequestException, SignatureException, MissingOptionException {

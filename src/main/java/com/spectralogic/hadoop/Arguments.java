@@ -18,6 +18,8 @@ public class Arguments {
     private String endpoint;
     private String accessKey;
     private String secretKey;
+    private int port = 8080;
+    private boolean secure = false;
 
     public Arguments() {
         options = new Options();
@@ -25,6 +27,9 @@ public class Arguments {
 
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint");
         ds3Endpoint.setArgName("url");
+        final Option secure = new Option("s", false, "Set if the connection to the ds3 endpoint should be sent via https");
+        final Option port = new Option("p", true, "Set the port to connect to ds3 on (default: 8080)");
+        port.setArgName("port");
         final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
         sourceDirectory.setArgName("directory");
         final Option destDirectory = new Option("o", true, "The output directory where any errors will be reported");
@@ -39,6 +44,8 @@ public class Arguments {
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
+        options.addOption(secure);
+        options.addOption(port);
         options.addOption(sourceDirectory);
         options.addOption(destDirectory);
         options.addOption(bucket);
@@ -64,6 +71,12 @@ public class Arguments {
         this.setEndpoint(cmd.getOptionValue("e"));
         this.setAccessKey(cmd.getOptionValue("a"));
         this.setSecretKey(cmd.getOptionValue("k"));
+        if(cmd.hasOption("p")) {
+            this.setPort(Integer.valueOf(cmd.getOptionValue("p")));
+        }
+        if(cmd.hasOption("s")) {
+            this.setSecure(true);
+        }
 
         final List<String> missingArgs = getMissingArgs();
 
@@ -111,7 +124,7 @@ public class Arguments {
 
     public void printHelp() {
         final HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp("hdfs -jar FileMigrator.jar com.spectralogic.hadoop.FileMigrator", options);
+        helpFormatter.printHelp("hdfs -jar FileMigrator.jar", options);
     }
 
     public String getBucket() {
@@ -164,5 +177,21 @@ public class Arguments {
 
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    private void setPort(int port) {
+        this.port = port;
+    }
+
+    public boolean isSecure() {
+        return secure;
+    }
+
+    private void setSecure(boolean secure) {
+        this.secure = secure;
     }
 }
