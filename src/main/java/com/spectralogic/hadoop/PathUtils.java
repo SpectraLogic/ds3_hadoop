@@ -1,13 +1,24 @@
 package com.spectralogic.hadoop;
 
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public class PathUtils {
-
+    /**
+     * Strips out the path from a uri.
+     * @param path
+     * @return
+     * @throws URISyntaxException
+     */
     public static String stripPath(final String path) throws URISyntaxException {
-        URI uri = new URI(path);
+        final URI uri = new URI(path);
         return uri.getPath();
+    }
+
+    public static String join(final String path1, final String path2) {
+        final File file1 = new File(path1);
+        return new File(file1, path2).toString().replace("\\","/");
     }
 }

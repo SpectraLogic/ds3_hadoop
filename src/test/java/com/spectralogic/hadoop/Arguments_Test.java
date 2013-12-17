@@ -52,11 +52,5 @@ public class Arguments_Test {
         assertThat(cmd.hasOption("i"), is(true));
     }
 
-    @Test
-    public void stripPath() throws URISyntaxException {
-        final String path = "hdfs://ryan-hdfs:54310/user/hduser/gutenberg/20417.txt.utf-8";
-        final String result = PathUtils.stripPath(path);
 
-        assertThat(result, is("/user/hduser/gutenberg/20417.txt.utf-8"));
-    }
 }

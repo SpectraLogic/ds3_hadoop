@@ -34,30 +34,24 @@ public class FileMigrator {
         private Text word = new Text();
         private final static LongWritable one = new LongWritable(1);
 
-        @Override
-        public void map(LongWritable longWritable, Text value, OutputCollector<Text, LongWritable> output, Reporter reporter) throws IOException {
+        private Ds3Client client;
 
-            final String line = value.toString();
-            final StringTokenizer tokenizer = new StringTokenizer(line);
-            while(tokenizer.hasMoreTokens()) {
-                word.set(tokenizer.nextToken());
-                output.collect(word, one);
-            }
+        @Override
+        public void configure(final JobConf conf) {
+            final Ds3ClientBuilder builder = new Ds3ClientBuilder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
+            client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).withPort(Integer.parseInt(conf.get("port"))).build();
+        }
+
+        @Override
+        public void map(final LongWritable longWritable, final Text value, final OutputCollector<Text, LongWritable> output, final Reporter reporter) throws IOException {
+
+            final String fileName = value.toString();
+            System.out.println("Processing file: " + fileName);
+
         }
     }
 
-    public static class Reduce extends MapReduceBase implements Reducer<Text, LongWritable, Text, LongWritable> {
 
-        @Override
-        public void reduce(Text text, Iterator<LongWritable> values, OutputCollector<Text, LongWritable> output, Reporter reporter) throws IOException {
-            long sum = 0;
-            while(values.hasNext()) {
-                sum += values.next().get();
-            }
-
-            output.collect(text, new LongWritable(sum));
-        }
-    }
 
     public FileMigrator(final Arguments arguments) throws IOException, URISyntaxException {
         final Ds3ClientBuilder builder = new Ds3ClientBuilder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
@@ -67,32 +61,24 @@ public class FileMigrator {
         outputDirectory = new Path(arguments.getDestDir());
         bucket = arguments.getBucket();
 
-
-
-
-
         conf = new JobConf(FileMigrator.class);
         conf.setJobName("FileMigrator");
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(LongWritable.class);
 
         conf.setMapperClass(Map.class);
-        conf.setCombinerClass(Reduce.class);
-        conf.setReducerClass(Reduce.class);
 
         conf.setInputFormat(TextInputFormat.class);
         conf.setOutputFormat(TextOutputFormat.class);
 
+        conf.set("secure", String.valueOf(arguments.isSecure()));
+        conf.set("port", String.valueOf(arguments.getPort()));
         conf.set("bucket", bucket);
         conf.set("accessKeyId", arguments.getAccessKey());
         conf.set("secretKey", arguments.getSecretKey());
         conf.set("endpoint", arguments.getEndpoint());
 
         hdfs = FileSystem.get(arguments.getConfiguration());
-
-
-        //hdfs = FileSystem.get(new URI("hdfs://192.168.56.10:54310"), arguments.getConfiguration());
-
     }
 
     public void run() throws IOException, XmlProcessingException, FailedRequestException, SignatureException {
@@ -116,22 +102,37 @@ public class FileMigrator {
                 writer.println(object.getName());
             }
         }
+        //flush the contents so we can copy them to hdfs
+        writer.flush();
+
+        System.out.println("Hadoop tmp dir" + conf.get("hadoop.tmp.dir"));
+
+        final String fileListFile = PathUtils.join(conf.get("hadoop.tmp.dir"), tempFile.getName());
+
+        System.out.println("FileList: " + fileListFile);
+        hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(conf.get("hadoop.tmp.dir")));
+
+        //Close the file after it's been used to make sure that tmp doesn't clean it up before its been copied to hdfs.
         writer.close();
 
-        FileInputFormat.setInputPaths(conf, inputDirectory);
+        FileInputFormat.setInputPaths(conf, fileListFile);
         FileOutputFormat.setOutputPath(conf, outputDirectory);
 
-
         System.out.println("----- Starting job -----");
+
 
         final RunningJob runningJob = JobClient.runJob(conf);
         runningJob.waitForCompletion();
 
-
         System.out.println("----- Finished Job -----");
     }
 
-
+    /**
+     * Generates a list of all the files contained within @param directoryPath
+     * @param directoryPath
+     * @return
+     * @throws IOException
+     */
     public List<FileStatus> getFileList(final Path directoryPath) throws IOException {
         final ArrayList<FileStatus> fileList = new ArrayList<FileStatus>();
         final FileStatus[] files = hdfs.listStatus(directoryPath);
