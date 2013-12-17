@@ -16,6 +16,7 @@ import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.*;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.SignatureException;
 import java.util.*;
@@ -58,14 +59,17 @@ public class FileMigrator {
         }
     }
 
-    public FileMigrator(final Arguments arguments) throws IOException {
+    public FileMigrator(final Arguments arguments) throws IOException, URISyntaxException {
         final Ds3ClientBuilder builder = new Ds3ClientBuilder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
         ds3Client = builder.withHttpSecure(arguments.isSecure()).withPort(arguments.getPort()).build();
 
         inputDirectory = new Path(arguments.getSrcDir());
         outputDirectory = new Path(arguments.getDestDir());
         bucket = arguments.getBucket();
-        hdfs = FileSystem.get(arguments.getConfiguration());
+
+
+
+
 
         conf = new JobConf(FileMigrator.class);
         conf.setJobName("FileMigrator");
@@ -83,6 +87,12 @@ public class FileMigrator {
         conf.set("accessKeyId", arguments.getAccessKey());
         conf.set("secretKey", arguments.getSecretKey());
         conf.set("endpoint", arguments.getEndpoint());
+
+        hdfs = FileSystem.get(arguments.getConfiguration());
+
+
+        //hdfs = FileSystem.get(new URI("hdfs://192.168.56.10:54310"), arguments.getConfiguration());
+
     }
 
     public void run() throws IOException, XmlProcessingException, FailedRequestException, SignatureException {
@@ -93,6 +103,9 @@ public class FileMigrator {
         final List<Ds3Object> objectList = convertFileStatusList(fileList);
 
         verifyBucketExists();
+
+        System.out.println("----- Priming DS3 -----");
+
         System.out.println("Files to perform bulk put for: " + objectList.toString());
         final MasterObjectList masterObjectList = ds3Client.bulkPut("/"+ bucket +"/", objectList);
 
@@ -104,8 +117,6 @@ public class FileMigrator {
             }
         }
         writer.close();
-
-        System.out.println("----- Priming DS3 -----");
 
         FileInputFormat.setInputPaths(conf, inputDirectory);
         FileOutputFormat.setOutputPath(conf, outputDirectory);
@@ -177,15 +188,24 @@ public class FileMigrator {
         System.out.println("Verify bucket exists.");
         final ListAllMyBucketsResult bucketList = ds3Client.getService();
         System.out.println("got buckets back: " + bucketList.toString());
+
+        final List<Bucket> buckets = bucketList.getBuckets();
+        if (buckets == null) {
+            ds3Client.createBucket(bucket);
+            return;
+        }
+
         for(final Bucket bucketInstance: bucketList.getBuckets()) {
-            if(bucketInstance.getName().equalsIgnoreCase(bucket)) {
-                System.out.println("Didn't find bucket, creating.");
-                ds3Client.createBucket(bucket);
+            if(bucketInstance.getName().equals(bucket)) {
+                System.out.println("Found bucket.");
+                return;
             }
         }
+        System.out.println("Didn't find bucket, creating.");
+        ds3Client.createBucket(bucket);
     }
 
-    public static void main(final String args[]) throws IOException, XmlProcessingException, FailedRequestException, SignatureException, MissingOptionException {
+    public static void main(final String args[]) throws IOException, XmlProcessingException, FailedRequestException, SignatureException, MissingOptionException, URISyntaxException {
         final Arguments arguments = processArgs(args);
         final FileMigrator migrator = new FileMigrator(arguments);
 
