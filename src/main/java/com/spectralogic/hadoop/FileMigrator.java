@@ -7,9 +7,8 @@ import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.models.Objects;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.commons.cli.*;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
@@ -35,19 +34,41 @@ public class FileMigrator {
         private final static LongWritable one = new LongWritable(1);
 
         private Ds3Client client;
-
+        private FileSystem hadoopFs;
+        private String bucketName;
         @Override
         public void configure(final JobConf conf) {
             final Ds3ClientBuilder builder = new Ds3ClientBuilder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
             client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).withPort(Integer.parseInt(conf.get("port"))).build();
+            try {
+                hadoopFs = FileSystem.get(new Configuration());
+            } catch (IOException e) {
+                e.printStackTrace();
+                hadoopFs = null;
+            }
+            bucketName = conf.get("bucket");
         }
 
         @Override
         public void map(final LongWritable longWritable, final Text value, final OutputCollector<Text, LongWritable> output, final Reporter reporter) throws IOException {
-
+            if(hadoopFs == null) {
+                throw new IOException("Could not connect to the hadoop fs.");
+            }
             final String fileName = value.toString();
+            final Path filePath = new Path(fileName);
             System.out.println("Processing file: " + fileName);
 
+            final FileStatus fileInfo = hadoopFs.getFileStatus(filePath);
+            final FSDataInputStream stream = hadoopFs.open(filePath);
+
+            try {
+                client.putObject(bucketName, fileName, fileInfo.getLen(), stream);
+            } catch (SignatureException e) {
+                System.out.println("Failed to compute DS3 signature");
+                throw new IOException(e);
+            } finally {
+                stream.close();
+            }
         }
     }
 
