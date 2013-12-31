@@ -20,6 +20,7 @@ public class Arguments {
     private String secretKey;
     private int port = 8080;
     private boolean secure = false;
+    private Command command;
 
     public Arguments() {
         options = new Options();
@@ -40,7 +41,8 @@ public class Arguments {
         accessKey.setArgName("accessKeyId");
         final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
         secretKey.setArgName("secretKey");
-
+        final Option command = new Option("c", true, "What command you want to perform.  Can be: [put, get]");
+        secretKey.setArgName("command");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
@@ -51,6 +53,7 @@ public class Arguments {
         options.addOption(bucket);
         options.addOption(accessKey);
         options.addOption(secretKey);
+        options.addOption(command);
         options.addOption(help);
 
     }
@@ -59,10 +62,23 @@ public class Arguments {
         return options;
     }
 
-    protected void processCommandLine(final CommandLine cmd) throws MissingOptionException {
+    protected void processCommandLine(final CommandLine cmd) throws MissingOptionException, BadArgumentException {
         if(cmd.hasOption('h')) {
             printHelp();
             System.exit(0);
+        }
+
+        try {
+            final String commandString = cmd.getOptionValue("c");
+            if(commandString == null) {
+                this.setCommand(null);
+            }
+            else {
+                this.setCommand(Command.valueOf(commandString.toUpperCase()));
+            }
+        }
+        catch (IllegalArgumentException e) {
+            throw new BadArgumentException("Unknown command", e);
         }
 
         this.setBucket(cmd.getOptionValue("b"));
@@ -85,7 +101,6 @@ public class Arguments {
             if(key == null) {
                 missingArgs.add("k");
             }
-
         }
 
         if(getAccessKey() == null) {
@@ -103,20 +118,24 @@ public class Arguments {
     private List<String> getMissingArgs() {
         final List<String> missingArgs = new ArrayList<String>();
 
-        if(getBucket() == null) {
+        if (getBucket() == null) {
             missingArgs.add("b");
         }
 
-        if(getEndpoint() == null) {
+        if (getEndpoint() == null) {
             missingArgs.add("e");
         }
 
-        if(getDestDir() == null) {
+        if (getDestDir() == null) {
             missingArgs.add("o");
         }
 
-        if(getSrcDir() == null) {
+        if (getSrcDir() == null) {
             missingArgs.add("i");
+        }
+
+        if (getCommand() == null) {
+            missingArgs.add("c");
         }
 
         return missingArgs;
@@ -193,5 +212,13 @@ public class Arguments {
 
     private void setSecure(boolean secure) {
         this.secure = secure;
+    }
+
+    public Command getCommand() {
+        return command;
+    }
+
+    private void setCommand(Command command) {
+        this.command = command;
     }
 }

@@ -15,7 +15,6 @@ import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.*;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.SignatureException;
 import java.util.*;
@@ -29,13 +28,14 @@ public class FileMigrator {
     private final Ds3Client ds3Client;
     private final String bucket;
 
-    public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, LongWritable> {
+    public static class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text, Text, LongWritable> {
         private Text word = new Text();
         private final static LongWritable one = new LongWritable(1);
 
         private Ds3Client client;
         private FileSystem hadoopFs;
         private String bucketName;
+
         @Override
         public void configure(final JobConf conf) {
             final Ds3ClientBuilder builder = new Ds3ClientBuilder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
@@ -72,7 +72,35 @@ public class FileMigrator {
         }
     }
 
+    public static class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text, Text, LongWritable> {
 
+        private Ds3Client client;
+        private FileSystem hadoopFs;
+        private String bucketName;
+
+        @Override
+        public void configure(final JobConf conf) {
+            final Ds3ClientBuilder builder = new Ds3ClientBuilder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
+            client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).withPort(Integer.parseInt(conf.get("port"))).build();
+            try {
+                hadoopFs = FileSystem.get(new Configuration());
+            } catch (IOException e) {
+                e.printStackTrace();
+                hadoopFs = null;
+            }
+            bucketName = conf.get("bucket");
+        }
+
+        @Override
+        public void map(LongWritable longWritable, Text value, OutputCollector<Text, LongWritable> textLongWritableOutputCollector, Reporter reporter) throws IOException {
+            if(hadoopFs == null) {
+                throw new IOException("Could not connect to the hadoop fs.");
+            }
+            final String fileName = value.toString();
+            final Path filePath = new Path(fileName);
+            System.out.println("Processing file: " + fileName);
+        }
+    }
 
     public FileMigrator(final Arguments arguments) throws IOException, URISyntaxException {
         final Ds3ClientBuilder builder = new Ds3ClientBuilder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
@@ -87,7 +115,7 @@ public class FileMigrator {
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(LongWritable.class);
 
-        conf.setMapperClass(Map.class);
+        conf.setMapperClass(BulkPut.class);
 
         conf.setInputFormat(TextInputFormat.class);
         conf.setOutputFormat(TextOutputFormat.class);
@@ -190,7 +218,7 @@ public class FileMigrator {
         return obj;
     }
 
-    private static Arguments processArgs(final String args[]) throws IOException, MissingOptionException {
+    private static Arguments processArgs(final String args[]) throws IOException, MissingOptionException, BadArgumentException {
         final Arguments arguments = new Arguments();
         final Options options = arguments.getOptions();
         final GenericOptionsParser optParser = new GenericOptionsParser(arguments.getConfiguration(), options, args);
@@ -227,7 +255,7 @@ public class FileMigrator {
         ds3Client.createBucket(bucket);
     }
 
-    public static void main(final String args[]) throws IOException, XmlProcessingException, FailedRequestException, SignatureException, MissingOptionException, URISyntaxException {
+    public static void main(final String args[]) throws IOException, XmlProcessingException, FailedRequestException, SignatureException, MissingOptionException, URISyntaxException, BadArgumentException {
         final Arguments arguments = processArgs(args);
         final FileMigrator migrator = new FileMigrator(arguments);
 
