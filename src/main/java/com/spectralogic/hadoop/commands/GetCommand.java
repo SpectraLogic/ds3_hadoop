@@ -2,9 +2,8 @@ package com.spectralogic.hadoop.commands;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.models.Credentials;
-import com.spectralogic.ds3client.models.Ds3Object;
-import com.spectralogic.ds3client.models.MasterObjectList;
+import com.spectralogic.ds3client.models.*;
+
 import com.spectralogic.hadoop.Arguments;
 import com.spectralogic.hadoop.util.PathUtils;
 import org.apache.commons.io.IOUtils;
@@ -20,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GetCommand extends AbstractCommand {
@@ -89,10 +89,13 @@ public class GetCommand extends AbstractCommand {
     public Boolean call() throws Exception {
 
         // ------------- Get file list from DS3 -------------
-        final List<Ds3Object> fileList = getDs3Client().listBucket(getBucket());
+        final ListBucketResult fileList = getDs3Client().listBucket(getBucket());
+
+        System.out.println("Files to prime for bulk get");
+        System.out.println(fileList);
 
         // prime ds3
-        final MasterObjectList result = getDs3Client().bulkGet(getBucket(), fileList);
+        final MasterObjectList result = getDs3Client().bulkGet(getBucket(), convertToList(fileList));
 
         final File tempFile = writeToTemp(result);
 
@@ -108,5 +111,15 @@ public class GetCommand extends AbstractCommand {
         runningJob.waitForCompletion();
 
         return true;
+    }
+
+    private List<Ds3Object> convertToList(final ListBucketResult bucketList) {
+        final List<Contents> contentList = bucketList.getContentsList();
+        final List<Ds3Object> objectList = new ArrayList<Ds3Object>();
+
+        for(final Contents contents: contentList) {
+            objectList.add(new Ds3Object(contents.getKey(), contents.getSize()));
+        }
+        return objectList;
     }
 }

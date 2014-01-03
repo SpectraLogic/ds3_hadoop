@@ -24,6 +24,6 @@ jar {
 dependencies {
     compile 'javax.activation:activation:1.1'
     compile 'org.apache.hadoop:hadoop-core:1.2.1'
-    compile 'com.spectralogic:ds3_java_sdk:0.0.19-SNAPSHOT'
+    compile 'com.spectralogic:ds3_java_sdk:0.0.21-SNAPSHOT'
     testCompile 'junit:junit:4.11'
 }
