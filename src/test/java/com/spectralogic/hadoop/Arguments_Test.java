@@ -6,7 +6,6 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;

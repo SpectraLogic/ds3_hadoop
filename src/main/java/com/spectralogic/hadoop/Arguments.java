@@ -42,7 +42,7 @@ public class Arguments {
         final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
         secretKey.setArgName("secretKey");
         final Option command = new Option("c", true, "What command you want to perform.  Can be: [put, get]");
-        secretKey.setArgName("command");
+        command.setArgName("command");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
