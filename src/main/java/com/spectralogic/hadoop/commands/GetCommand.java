@@ -3,15 +3,24 @@ package com.spectralogic.hadoop.commands;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
+import com.spectralogic.ds3client.models.Ds3Object;
+import com.spectralogic.ds3client.models.MasterObjectList;
 import com.spectralogic.hadoop.Arguments;
+import com.spectralogic.hadoop.util.PathUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.SignatureException;
+import java.util.List;
 
 public class GetCommand extends AbstractCommand {
 
@@ -27,7 +36,7 @@ public class GetCommand extends AbstractCommand {
             client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).withPort(Integer.parseInt(conf.get("port"))).build();
             try {
                 hadoopFs = FileSystem.get(new Configuration());
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
                 hadoopFs = null;
             }
@@ -41,7 +50,23 @@ public class GetCommand extends AbstractCommand {
             }
             final String fileName = value.toString();
             final Path filePath = new Path(fileName);
+
             System.out.println("Processing file: " + fileName);
+
+
+            try {
+                final InputStream getStream = client.getObject(bucketName, fileName);
+                final FSDataOutputStream hdfsStream = hadoopFs.create(filePath);
+
+                IOUtils.copy(getStream, hdfsStream);
+                getStream.close();
+                hdfsStream.close();
+
+            } catch (SignatureException e) {
+                System.out.println("Failed to compute DS3 signature");
+                e.printStackTrace();
+                throw new IOException(e);
+            }
         }
     }
 
@@ -51,11 +76,37 @@ public class GetCommand extends AbstractCommand {
 
     @Override
     public void init(JobConf conf) {
+        conf.setOutputKeyClass(Text.class);
+        conf.setOutputValueClass(LongWritable.class);
 
+        conf.setMapperClass(BulkGet.class);
+
+        conf.setInputFormat(TextInputFormat.class);
+        conf.setOutputFormat(TextOutputFormat.class);
     }
 
     @Override
     public Boolean call() throws Exception {
-        return null;
+
+        // ------------- Get file list from DS3 -------------
+        final List<Ds3Object> fileList = getDs3Client().listBucket(getBucket());
+
+        // prime ds3
+        final MasterObjectList result = getDs3Client().bulkGet(getBucket(), fileList);
+
+        final File tempFile = writeToTemp(result);
+
+        final String fileListFile = PathUtils.join(getConf().get("hadoop.tmp.dir"), tempFile.getName());
+
+        System.out.println("FileList: " + fileListFile);
+        getHdfs().copyFromLocalFile(new Path(tempFile.toString()), new Path(getConf().get("hadoop.tmp.dir")));
+
+        FileInputFormat.setInputPaths(getConf(), fileListFile);
+        FileOutputFormat.setOutputPath(getConf(), getOutputDirectory());
+
+        final RunningJob runningJob = JobClient.runJob(getConf());
+        runningJob.waitForCompletion();
+
+        return true;
     }
 }

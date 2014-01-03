@@ -9,7 +9,7 @@ import com.spectralogic.ds3client.models.MasterObjectList;
 import com.spectralogic.ds3client.models.Objects;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.hadoop.Arguments;
-import com.spectralogic.hadoop.PathUtils;
+import com.spectralogic.hadoop.util.PathUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -97,17 +97,9 @@ public class PutCommand extends AbstractCommand {
         System.out.println("----- Priming DS3 -----");
 
         System.out.println("Files to perform bulk put for: " + objectList.toString());
-        final MasterObjectList masterObjectList = getDs3Client().bulkPut("/" + getBucket() + "/", objectList);
+        final MasterObjectList masterObjectList = getDs3Client().bulkPut(getBucket(), objectList);
 
-        final File tempFile = File.createTempFile("migrator","dat");
-        final PrintWriter writer = new PrintWriter(new FileWriter(tempFile));
-        for(final Objects objects: masterObjectList.getObjects()) {
-            for(final Ds3Object object: objects.getObject()) {
-                writer.println(object.getName());
-            }
-        }
-        //flush the contents so we can copy them to hdfs
-        writer.flush();
+        final File tempFile = writeToTemp(masterObjectList);
 
         System.out.println("Hadoop tmp dir" + getConf().get("hadoop.tmp.dir"));
 
@@ -115,9 +107,6 @@ public class PutCommand extends AbstractCommand {
 
         System.out.println("FileList: " + fileListFile);
         getHdfs().copyFromLocalFile(new Path(tempFile.toString()), new Path(getConf().get("hadoop.tmp.dir")));
-
-        //Close the file after it's been used to make sure that tmp doesn't clean it up before its been copied to hdfs.
-        writer.close();
 
         FileInputFormat.setInputPaths(getConf(), fileListFile);
         FileOutputFormat.setOutputPath(getConf(), getOutputDirectory());
@@ -131,4 +120,6 @@ public class PutCommand extends AbstractCommand {
         System.out.println("----- Finished Job -----");
         return true;
     }
+
+
 }

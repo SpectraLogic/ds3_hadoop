@@ -3,19 +3,19 @@ package com.spectralogic.hadoop.commands;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.FailedRequestException;
-import com.spectralogic.ds3client.models.Bucket;
-import com.spectralogic.ds3client.models.Credentials;
-import com.spectralogic.ds3client.models.Ds3Object;
-import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
+import com.spectralogic.ds3client.models.*;
 import com.spectralogic.hadoop.Arguments;
 import com.spectralogic.hadoop.FileMigrator;
-import com.spectralogic.hadoop.PathUtils;
+import com.spectralogic.hadoop.util.PathUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.security.SignatureException;
 import java.util.ArrayList;
@@ -131,6 +131,23 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         }
         System.out.println("Didn't find bucket, creating.");
         ds3Client.createBucket(bucket);
+    }
+
+    protected File writeToTemp(MasterObjectList masterObjectList) throws IOException {
+        final File tempFile = File.createTempFile("migrator","dat");
+        final PrintWriter writer = new PrintWriter(new FileWriter(tempFile));
+
+        for(final Objects objects: masterObjectList.getObjects()) {
+            for(final Ds3Object object: objects.getObject()) {
+                writer.println(object.getName());
+            }
+        }
+
+        //flush the contents to make sure they are on disk before writing to hdfs
+        writer.flush();
+        writer.close();
+
+        return tempFile;
     }
 
     protected FileSystem getHdfs() {

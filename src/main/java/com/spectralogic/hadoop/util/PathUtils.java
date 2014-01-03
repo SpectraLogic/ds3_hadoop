@@ -1,4 +1,4 @@
-package com.spectralogic.hadoop;
+package com.spectralogic.hadoop.util;
 
 
 import java.io.File;

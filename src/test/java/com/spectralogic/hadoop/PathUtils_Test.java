@@ -1,5 +1,6 @@
 package com.spectralogic.hadoop;
 
+import com.spectralogic.hadoop.util.PathUtils;
 import org.junit.Test;
 
 import java.net.URISyntaxException;
