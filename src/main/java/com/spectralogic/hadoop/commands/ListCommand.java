@@ -2,6 +2,7 @@ package com.spectralogic.hadoop.commands;
 
 
 import com.bethecoder.ascii_table.ASCIITable;
+import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.ListBucketResult;
 import com.spectralogic.hadoop.Arguments;
@@ -30,24 +31,30 @@ public class ListCommand extends AbstractCommand {
     }
 
     public String[][] formatBucketList(final ListBucketResult listBucketResult) {
-
-
         final List<Contents> contentList = listBucketResult.getContentsList();
         final String[][] formatArray = new String[contentList.size()][];
 
         for(int i = 0; i < contentList.size(); i++) {
             final Contents content = contentList.get(i);
-            final String[] arrayEntry = new String[2];
+            final String[] arrayEntry = new String[5];
             arrayEntry[0] = content.getKey();
             arrayEntry[1] = Integer.toString(content.getSize());
+            arrayEntry[2] = content.getOwner().getDisplayName();
+            arrayEntry[3] = content.getLastModified();
+            arrayEntry[4] = content.geteTag();
             formatArray[i] = arrayEntry;
         }
 
         return formatArray;
     }
 
-    public String[] getHeaders() {
-        final String[] headers = {"File Name", "Size"};
-        return headers;
+    private ASCIITableHeader[] getHeaders() {
+        return new ASCIITableHeader[]{
+                new ASCIITableHeader("File Name", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("Size", ASCIITable.ALIGN_RIGHT),
+                new ASCIITableHeader("Owner", ASCIITable.ALIGN_RIGHT),
+                new ASCIITableHeader("Last Modified", ASCIITable.ALIGN_LEFT),
+                new ASCIITableHeader("ETag", ASCIITable.ALIGN_RIGHT)};
+
     }
 }
