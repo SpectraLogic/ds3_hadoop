@@ -21,4 +21,11 @@ public class PathUtils {
         final File file1 = new File(path1);
         return new File(file1, path2).toString().replace("\\","/");
     }
+
+    public static String ensureStartsWithSlash(final String path) {
+        if(!path.startsWith("/")) {
+            return "/" + path;
+        }
+        return path;
+    }
 }

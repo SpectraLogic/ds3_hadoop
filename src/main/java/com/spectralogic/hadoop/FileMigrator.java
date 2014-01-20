@@ -1,8 +1,6 @@
 package com.spectralogic.hadoop;
 
-import com.spectralogic.hadoop.commands.AbstractCommand;
-import com.spectralogic.hadoop.commands.GetCommand;
-import com.spectralogic.hadoop.commands.PutCommand;
+import com.spectralogic.hadoop.commands.*;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.util.GenericOptionsParser;
 
@@ -15,11 +13,24 @@ public class FileMigrator {
     private final AbstractCommand command;
 
     public FileMigrator(final Arguments arguments) throws IOException, URISyntaxException {
-        if(arguments.getCommand() == Command.PUT) {
-            command = new PutCommand(arguments);
-        }
-        else {
-            command = new GetCommand(arguments);
+        switch(arguments.getCommand()) {
+            case PUT: {
+                command = new PutCommand(arguments);
+                break;
+            }
+            case GET: {
+                command = new GetCommand(arguments);
+                break;
+            }
+            case JOBLIST: {
+                command = new JobListCommand(arguments);
+                break;
+            }
+            case LIST:
+            default: {
+                command = new ListCommand(arguments);
+                break;
+            }
         }
     }
 

@@ -49,7 +49,7 @@ public class GetCommand extends AbstractCommand {
                 throw new IOException("Could not connect to the hadoop fs.");
             }
             final String fileName = value.toString();
-            final Path filePath = new Path(fileName);
+            final Path filePath = new Path(PathUtils.ensureStartsWithSlash(fileName));
 
             System.out.println("Processing file: " + fileName);
 
@@ -62,7 +62,7 @@ public class GetCommand extends AbstractCommand {
                 getStream.close();
                 hdfsStream.close();
 
-            } catch (SignatureException e) {
+            } catch (final SignatureException e) {
                 System.out.println("Failed to compute DS3 signature");
                 e.printStackTrace();
                 throw new IOException(e);
