@@ -2,8 +2,9 @@ package com.spectralogic.hadoop.commands;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.FailedRequestException;
+
 import com.spectralogic.ds3client.models.*;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.hadoop.Arguments;
 import com.spectralogic.hadoop.FileMigrator;
 import com.spectralogic.hadoop.util.PathUtils;
@@ -34,7 +35,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
 
     public AbstractCommand(final Arguments arguments) throws IOException {
         final Ds3ClientBuilder builder = new Ds3ClientBuilder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
-        ds3Client = builder.withHttpSecure(arguments.isSecure()).withPort(arguments.getPort()).build();
+        ds3Client = builder.withHttpSecure(arguments.isSecure()).build();
 
         inputDirectory = new Path(arguments.getSrcDir());
         outputDirectory = new Path(arguments.getDestDir());
@@ -46,7 +47,6 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         init(conf);
 
         conf.set("secure", String.valueOf(arguments.isSecure()));
-        conf.set("port", String.valueOf(arguments.getPort()));
         conf.set("bucket", bucket);
         conf.set("accessKeyId", arguments.getAccessKey());
         conf.set("secretKey", arguments.getSecretKey());
@@ -108,7 +108,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
 
     /**
      * Verifies to see if the bucket exists, and if it doesn't, creates it.
-     * @throws com.spectralogic.ds3client.FailedRequestException
+     * @throws FailedRequestException
      * @throws java.security.SignatureException
      * @throws IOException
      */

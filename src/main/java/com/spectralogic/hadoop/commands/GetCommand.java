@@ -33,7 +33,7 @@ public class GetCommand extends AbstractCommand {
         @Override
         public void configure(final JobConf conf) {
             final Ds3ClientBuilder builder = new Ds3ClientBuilder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
-            client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).withPort(Integer.parseInt(conf.get("port"))).build();
+            client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).build();
             try {
                 hadoopFs = FileSystem.get(new Configuration());
             } catch (final IOException e) {

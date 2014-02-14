@@ -2,11 +2,12 @@ package com.spectralogic.hadoop.commands;
 
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.FailedRequestException;
+
 import com.spectralogic.ds3client.models.Credentials;
 import com.spectralogic.ds3client.models.Ds3Object;
 import com.spectralogic.ds3client.models.MasterObjectList;
-import com.spectralogic.ds3client.models.Objects;
+
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.hadoop.Arguments;
 import com.spectralogic.hadoop.util.PathUtils;
@@ -37,7 +38,7 @@ public class PutCommand extends AbstractCommand {
         @Override
         public void configure(final JobConf conf) {
             final Ds3ClientBuilder builder = new Ds3ClientBuilder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
-            client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).withPort(Integer.parseInt(conf.get("port"))).build();
+            client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).build();
             try {
                 hadoopFs = FileSystem.get(new Configuration());
             } catch (IOException e) {
@@ -86,7 +87,7 @@ public class PutCommand extends AbstractCommand {
     }
 
     @Override
-    public Boolean call() throws FailedRequestException, SignatureException, IOException, XmlProcessingException {
+    public Boolean call() throws SignatureException, IOException, XmlProcessingException, FailedRequestException {
         System.out.println("----- Generating File List -----");
 
         final List<FileStatus> fileList = getFileList(getInputDirectory());
@@ -101,12 +102,13 @@ public class PutCommand extends AbstractCommand {
 
         final File tempFile = writeToTemp(masterObjectList);
 
-        System.out.println("Hadoop tmp dir" + getConf().get("hadoop.tmp.dir"));
+        final String hadoopTempDir = getConf().get("hadoop.tmp.dir");
+        System.out.println("Hadoop tmp dir: " + hadoopTempDir);
 
-        final String fileListFile = PathUtils.join(getConf().get("hadoop.tmp.dir"), tempFile.getName());
+        final String fileListFile = PathUtils.join(hadoopTempDir, tempFile.getName());
 
         System.out.println("FileList: " + fileListFile);
-        getHdfs().copyFromLocalFile(new Path(tempFile.toString()), new Path(getConf().get("hadoop.tmp.dir")));
+        getHdfs().copyFromLocalFile(new Path(tempFile.toString()), new Path(fileListFile));
 
         FileInputFormat.setInputPaths(getConf(), fileListFile);
         FileOutputFormat.setOutputPath(getConf(), getOutputDirectory());

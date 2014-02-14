@@ -18,7 +18,6 @@ public class Arguments {
     private String endpoint;
     private String accessKey;
     private String secretKey;
-    private int port = 8080;
     private boolean secure = false;
     private Command command;
 
@@ -29,8 +28,6 @@ public class Arguments {
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint");
         ds3Endpoint.setArgName("url");
         final Option secure = new Option("s", false, "Set if the connection to the ds3 endpoint should be sent via https");
-        final Option port = new Option("p", true, "Set the port to connect to ds3 on (default: 8080)");
-        port.setArgName("port");
         final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
         sourceDirectory.setArgName("directory");
         final Option destDirectory = new Option("o", true, "The output directory where any errors will be reported");
@@ -47,7 +44,6 @@ public class Arguments {
 
         options.addOption(ds3Endpoint);
         options.addOption(secure);
-        options.addOption(port);
         options.addOption(sourceDirectory);
         options.addOption(destDirectory);
         options.addOption(bucket);
@@ -87,19 +83,30 @@ public class Arguments {
         this.setEndpoint(cmd.getOptionValue("e"));
         this.setAccessKey(cmd.getOptionValue("a"));
         this.setSecretKey(cmd.getOptionValue("k"));
-        if(cmd.hasOption("p")) {
-            this.setPort(Integer.valueOf(cmd.getOptionValue("p")));
-        }
+
         if(cmd.hasOption("s")) {
             this.setSecure(true);
         }
 
         final List<String> missingArgs = getMissingArgs();
 
+        if(getEndpoint() == null) {
+            final String endpoint = System.getenv("DS3_ENDPOINT");
+            if(endpoint == null) {
+                missingArgs.add("e");
+            }
+            else {
+                setEndpoint(endpoint);
+            }
+        }
+
         if(getSecretKey() == null) {
             final String key = System.getenv("DS3_SECRET_KEY");
             if(key == null) {
                 missingArgs.add("k");
+            }
+            else {
+                setSecretKey(key);
             }
         }
 
@@ -107,6 +114,9 @@ public class Arguments {
             final String key = System.getenv("DS3_ACCESS_KEY");
             if(key == null) {
                 missingArgs.add("a");
+            }
+            else {
+                setAccessKey(key);
             }
         }
 
@@ -120,10 +130,6 @@ public class Arguments {
 
         if (getBucket() == null) {
             missingArgs.add("b");
-        }
-
-        if (getEndpoint() == null) {
-            missingArgs.add("e");
         }
 
         if (getDestDir() == null) {
@@ -196,14 +202,6 @@ public class Arguments {
 
     public Configuration getConfiguration() {
         return configuration;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    private void setPort(int port) {
-        this.port = port;
     }
 
     public boolean isSecure() {
