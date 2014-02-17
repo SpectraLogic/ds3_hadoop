@@ -37,8 +37,20 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         final Ds3ClientBuilder builder = new Ds3ClientBuilder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
         ds3Client = builder.withHttpSecure(arguments.isSecure()).build();
 
-        inputDirectory = new Path(arguments.getSrcDir());
-        outputDirectory = new Path(arguments.getDestDir());
+        //These args should only be null on list commands.
+        if(arguments.getSrcDir() != null) {
+            inputDirectory = new Path(arguments.getSrcDir());
+        }
+        else {
+            inputDirectory = null;
+        }
+        if(arguments.getDestDir() != null) {
+            outputDirectory = new Path(arguments.getDestDir());
+        }
+        else {
+            outputDirectory = null;
+        }
+
         bucket = arguments.getBucket();
 
         conf = new JobConf(FileMigrator.class);
@@ -139,7 +151,9 @@ public abstract class AbstractCommand implements Callable<Boolean> {
 
         for(final Objects objects: masterObjectList.getObjects()) {
             for(final Ds3Object object: objects.getObject()) {
-                writer.println(object.getName());
+                if(!PathUtils.isDir(object)) {
+                    writer.println(object.getName());
+                }
             }
         }
 

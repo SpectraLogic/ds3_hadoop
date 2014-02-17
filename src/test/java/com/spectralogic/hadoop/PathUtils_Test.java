@@ -1,5 +1,6 @@
 package com.spectralogic.hadoop;
 
+import com.spectralogic.ds3client.models.Ds3Object;
 import com.spectralogic.hadoop.util.PathUtils;
 import org.junit.Test;
 
@@ -26,4 +27,26 @@ public class PathUtils_Test {
 
         assertThat(PathUtils.join(path, name), is("/app/hadoop/tmp/fileName"));
     }
+
+    @Test
+    public void isDir() {
+        final Ds3Object obj = new Ds3Object("test/", 0);
+
+        assertThat(PathUtils.isDir(obj), is(true));
+    }
+
+    @Test
+    public void isNotDir() {
+        final Ds3Object obj = new Ds3Object("test", 0);
+
+        assertThat(PathUtils.isDir(obj), is(false));
+    }
+
+    @Test
+    public void isNotDirWithData() {
+        final Ds3Object obj = new Ds3Object("test/", 12);
+
+        assertThat(PathUtils.isDir(obj), is(true));
+    }
+
 }

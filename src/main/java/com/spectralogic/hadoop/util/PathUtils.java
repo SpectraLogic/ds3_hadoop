@@ -1,6 +1,8 @@
 package com.spectralogic.hadoop.util;
 
 
+import com.spectralogic.ds3client.models.Ds3Object;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,5 +29,12 @@ public class PathUtils {
             return "/" + path;
         }
         return path;
+    }
+
+    public static boolean isDir(final Ds3Object obj) {
+        if(obj.getName().endsWith("/")) {
+            return true;
+        }
+        return false;
     }
 }
