@@ -132,11 +132,11 @@ public class Arguments {
             missingArgs.add("b");
         }
 
-        if (getDestDir() == null) {
+        if (getDestDir() == null && !listCommand()) {
             missingArgs.add("o");
         }
 
-        if (getSrcDir() == null) {
+        if (getSrcDir() == null && !listCommand()) {
             missingArgs.add("i");
         }
 
@@ -145,6 +145,10 @@ public class Arguments {
         }
 
         return missingArgs;
+    }
+
+    private boolean listCommand() {
+        return getCommand() == Command.JOBS || getCommand() == Command.LIST;
     }
 
     public void printHelp() {

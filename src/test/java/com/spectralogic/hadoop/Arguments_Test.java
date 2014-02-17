@@ -78,4 +78,58 @@ public class Arguments_Test {
         arguments.processCommandLine(cmd);
     }
 
+    @Test
+    public void fileList() throws ParseException, IOException, BadArgumentException {
+        final Arguments arguments = new Arguments();
+
+        final String[] args = new String[10];
+        args[0] = "-b";
+        args[1] = "bucketName";
+        args[2] = "-e";
+        args[3] = "http://localhost:8080";
+        args[4] = "-k";
+        args[5] = "MyKey";
+        args[6] = "-a";
+        args[7] = "accessId";
+        args[8] = "-c";
+        args[9] = "list";
+
+        final GenericOptionsParser optParser = new GenericOptionsParser(new Configuration(), arguments.getOptions(), args);
+        final CommandLine cmd = optParser.getCommandLine();
+        arguments.processCommandLine(cmd);
+
+        assertThat(cmd.hasOption("b"), is(true));
+        assertThat(cmd.hasOption("e"), is(true));
+        assertThat(cmd.hasOption("o"), is(false));
+        assertThat(cmd.hasOption("i"), is(false));
+        assertThat(cmd.hasOption("c"), is(true));
+    }
+
+    @Test
+    public void jobList() throws ParseException, IOException, BadArgumentException {
+        final Arguments arguments = new Arguments();
+
+        final String[] args = new String[10];
+        args[0] = "-b";
+        args[1] = "bucketName";
+        args[2] = "-e";
+        args[3] = "http://localhost:8080";
+        args[4] = "-k";
+        args[5] = "MyKey";
+        args[6] = "-a";
+        args[7] = "accessId";
+        args[8] = "-c";
+        args[9] = "jobs";
+
+        final GenericOptionsParser optParser = new GenericOptionsParser(new Configuration(), arguments.getOptions(), args);
+        final CommandLine cmd = optParser.getCommandLine();
+        arguments.processCommandLine(cmd);
+
+        assertThat(cmd.hasOption("b"), is(true));
+        assertThat(cmd.hasOption("e"), is(true));
+        assertThat(cmd.hasOption("o"), is(false));
+        assertThat(cmd.hasOption("i"), is(false));
+        assertThat(cmd.hasOption("c"), is(true));
+    }
+
 }

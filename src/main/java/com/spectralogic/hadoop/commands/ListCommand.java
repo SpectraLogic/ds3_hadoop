@@ -40,8 +40,8 @@ public class ListCommand extends AbstractCommand {
             arrayEntry[0] = content.getKey();
             arrayEntry[1] = Integer.toString(content.getSize());
             arrayEntry[2] = content.getOwner().getDisplayName();
-            arrayEntry[3] = content.getLastModified();
-            arrayEntry[4] = content.geteTag();
+            arrayEntry[3] = nullGuard(content.getLastModified());
+            arrayEntry[4] = nullGuard(content.geteTag());
             formatArray[i] = arrayEntry;
         }
 
@@ -56,5 +56,12 @@ public class ListCommand extends AbstractCommand {
                 new ASCIITableHeader("Last Modified", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("ETag", ASCIITable.ALIGN_RIGHT)};
 
+    }
+
+    private String nullGuard(String message) {
+        if(message == null) {
+            return "N/A";
+        }
+        return message;
     }
 }

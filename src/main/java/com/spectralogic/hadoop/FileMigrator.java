@@ -22,7 +22,7 @@ public class FileMigrator {
                 command = new GetCommand(arguments);
                 break;
             }
-            case JOBLIST: {
+            case JOBS: {
                 command = new JobListCommand(arguments);
                 break;
             }
