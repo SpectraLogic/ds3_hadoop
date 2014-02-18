@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.SignatureException;
+import java.util.Collections;
 import java.util.List;
 
 public class PutCommand extends AbstractCommand {
@@ -87,10 +88,11 @@ public class PutCommand extends AbstractCommand {
     }
 
     @Override
-    public Boolean call() throws SignatureException, IOException, XmlProcessingException, FailedRequestException {
+    public Boolean call() throws SignatureException, IOException, XmlProcessingException {
         System.out.println("----- Generating File List -----");
 
         final List<FileStatus> fileList = getFileList(getInputDirectory());
+
         final List<Ds3Object> objectList = convertFileStatusList(fileList);
 
         verifyBucketExists();
@@ -98,7 +100,7 @@ public class PutCommand extends AbstractCommand {
         System.out.println("----- Priming DS3 -----");
 
         System.out.println("Files to perform bulk put for: " + objectList.toString());
-        final MasterObjectList masterObjectList = getDs3Client().bulkPut(getBucket(), objectList);
+        final MasterObjectList masterObjectList = getDs3Client().bulkPut(getBucket(), objectList.iterator());
 
         final File tempFile = writeToTemp(masterObjectList);
 

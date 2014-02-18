@@ -1,7 +1,6 @@
-package com.spectralogic.hadoop;
+package com.spectralogic.hadoop.util;
 
 import com.spectralogic.ds3client.models.Ds3Object;
-import com.spectralogic.hadoop.util.PathUtils;
 import org.junit.Test;
 
 import java.net.URISyntaxException;

@@ -136,7 +136,7 @@ public class Arguments {
             missingArgs.add("o");
         }
 
-        if (getSrcDir() == null && !listCommand()) {
+        if (getSrcDir() == null && getCommand() == Command.PUT) {
             missingArgs.add("i");
         }
 

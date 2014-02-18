@@ -151,9 +151,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
 
         for(final Objects objects: masterObjectList.getObjects()) {
             for(final Ds3Object object: objects.getObject()) {
-                if(!PathUtils.isDir(object)) {
-                    writer.println(object.getName());
-                }
+                writer.println(object.getName());
             }
         }
 

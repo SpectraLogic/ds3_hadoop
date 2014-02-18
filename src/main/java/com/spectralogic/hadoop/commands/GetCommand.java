@@ -3,8 +3,8 @@ package com.spectralogic.hadoop.commands;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.*;
-
 import com.spectralogic.hadoop.Arguments;
+import com.spectralogic.hadoop.util.ListUtils;
 import com.spectralogic.hadoop.util.PathUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.SignatureException;
 import java.util.ArrayList;
+
 import java.util.List;
 
 public class GetCommand extends AbstractCommand {
@@ -53,13 +54,10 @@ public class GetCommand extends AbstractCommand {
 
             System.out.println("Processing file: " + fileName);
 
-
-            try {
-                final InputStream getStream = client.getObject(bucketName, fileName);
-                final FSDataOutputStream hdfsStream = hadoopFs.create(filePath);
+            try(final InputStream getStream = client.getObject(bucketName, fileName);
+                final FSDataOutputStream hdfsStream = hadoopFs.create(filePath)) {
 
                 IOUtils.copy(getStream, hdfsStream);
-                getStream.close();
                 hdfsStream.close();
 
             } catch (final SignatureException e) {
@@ -91,17 +89,15 @@ public class GetCommand extends AbstractCommand {
         // ------------- Get file list from DS3 -------------
         final ListBucketResult fileList = getDs3Client().listBucket(getBucket());
 
-        System.out.println("Files to prime for bulk get");
-        System.out.println(fileList);
+        final List<Ds3Object> objects = convertToList(fileList);
 
         // prime ds3
-        final MasterObjectList result = getDs3Client().bulkGet(getBucket(), convertToList(fileList));
+        final MasterObjectList result = getDs3Client().bulkGet(getBucket(), ListUtils.filterDirectories(objects));
 
         final File tempFile = writeToTemp(result);
 
         final String fileListFile = PathUtils.join(getConf().get("hadoop.tmp.dir"), tempFile.getName());
 
-        System.out.println("FileList: " + fileListFile);
         getHdfs().copyFromLocalFile(new Path(tempFile.toString()), new Path(getConf().get("hadoop.tmp.dir")));
 
         FileInputFormat.setInputPaths(getConf(), fileListFile);

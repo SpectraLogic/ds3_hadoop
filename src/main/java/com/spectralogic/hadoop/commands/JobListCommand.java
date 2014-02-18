@@ -17,6 +17,7 @@ public class JobListCommand extends AbstractCommand {
 
     @Override
     public Boolean call() throws Exception {
+        System.out.println("Operation Not Supported");
         return null;
     }
 }
