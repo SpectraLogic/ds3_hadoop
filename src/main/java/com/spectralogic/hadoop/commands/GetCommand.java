@@ -1,7 +1,11 @@
 package com.spectralogic.hadoop.commands;
 
+import com.google.common.collect.Lists;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.commands.BulkGetRequest;
+import com.spectralogic.ds3client.commands.GetBucketRequest;
+import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.hadoop.Arguments;
 import com.spectralogic.hadoop.util.ListUtils;
@@ -54,7 +58,7 @@ public class GetCommand extends AbstractCommand {
 
             System.out.println("Processing file: " + fileName);
 
-            try(final InputStream getStream = client.getObject(bucketName, fileName);
+            try(final InputStream getStream = client.getObject(new GetObjectRequest(bucketName, fileName)).getContent();
                 final FSDataOutputStream hdfsStream = hadoopFs.create(filePath)) {
 
                 IOUtils.copy(getStream, hdfsStream);
@@ -87,12 +91,12 @@ public class GetCommand extends AbstractCommand {
     public Boolean call() throws Exception {
 
         // ------------- Get file list from DS3 -------------
-        final ListBucketResult fileList = getDs3Client().listBucket(getBucket());
+        final ListBucketResult fileList = getDs3Client().getBucket(new GetBucketRequest(getBucket())).getResult();
 
         final List<Ds3Object> objects = convertToList(fileList);
 
         // prime ds3
-        final MasterObjectList result = getDs3Client().bulkGet(getBucket(), ListUtils.filterDirectories(objects));
+        final MasterObjectList result = getDs3Client().bulkGet(new BulkGetRequest(getBucket(), Lists.newArrayList(ListUtils.filterDirectories(objects)))).getResult();
 
         final File tempFile = writeToTemp(result);
 
@@ -111,7 +115,7 @@ public class GetCommand extends AbstractCommand {
 
     private List<Ds3Object> convertToList(final ListBucketResult bucketList) {
         final List<Contents> contentList = bucketList.getContentsList();
-        final List<Ds3Object> objectList = new ArrayList<Ds3Object>();
+        final List<Ds3Object> objectList = new ArrayList<>();
 
         for(final Contents contents: contentList) {
             objectList.add(new Ds3Object(contents.getKey(), contents.getSize()));

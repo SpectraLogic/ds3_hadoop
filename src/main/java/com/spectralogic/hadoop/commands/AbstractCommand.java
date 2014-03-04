@@ -3,6 +3,8 @@ package com.spectralogic.hadoop.commands;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 
+import com.spectralogic.ds3client.commands.GetServiceRequest;
+import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.hadoop.Arguments;
@@ -83,7 +85,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
      * @throws java.io.IOException
      */
     public List<FileStatus> getFileList(final Path directoryPath) throws IOException {
-        final ArrayList<FileStatus> fileList = new ArrayList<FileStatus>();
+        final ArrayList<FileStatus> fileList = new ArrayList<>();
         final FileStatus[] files = hdfs.listStatus(directoryPath);
         if(files.length != 0) {
             for (final FileStatus file: files) {
@@ -99,7 +101,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
     }
 
     protected List<Ds3Object> convertFileStatusList(final List<FileStatus> fileList) {
-        final List<Ds3Object> objectList = new ArrayList<Ds3Object>();
+        final List<Ds3Object> objectList = new ArrayList<>();
 
         for (final FileStatus file: fileList) {
             objectList.add(fileStatusToDs3Object(file));
@@ -124,25 +126,23 @@ public abstract class AbstractCommand implements Callable<Boolean> {
      * @throws java.security.SignatureException
      * @throws IOException
      */
-    protected void verifyBucketExists() throws FailedRequestException, SignatureException, IOException {
+    protected void verifyBucketExists() throws SignatureException, IOException {
         System.out.println("Verify bucket exists.");
-        final ListAllMyBucketsResult bucketList = ds3Client.getService();
+        final ListAllMyBucketsResult bucketList = ds3Client.getService(new GetServiceRequest()).getResult();
         System.out.println("got buckets back: " + bucketList.toString());
 
         final List<Bucket> buckets = bucketList.getBuckets();
         if (buckets == null) {
-            ds3Client.createBucket(bucket);
+            ds3Client.putBucket(new PutBucketRequest(bucket));
             return;
         }
 
         for(final Bucket bucketInstance: bucketList.getBuckets()) {
             if(bucketInstance.getName().equals(bucket)) {
-                System.out.println("Found bucket.");
                 return;
             }
         }
-        System.out.println("Didn't find bucket, creating.");
-        ds3Client.createBucket(bucket);
+        ds3Client.putBucket(new PutBucketRequest(bucket));
     }
 
     protected File writeToTemp(MasterObjectList masterObjectList) throws IOException {

@@ -3,11 +3,12 @@ package com.spectralogic.hadoop.commands;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 
+import com.spectralogic.ds3client.commands.BulkPutRequest;
+import com.spectralogic.ds3client.commands.PutObjectRequest;
 import com.spectralogic.ds3client.models.Credentials;
 import com.spectralogic.ds3client.models.Ds3Object;
 import com.spectralogic.ds3client.models.MasterObjectList;
 
-import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import com.spectralogic.hadoop.Arguments;
 import com.spectralogic.hadoop.util.PathUtils;
@@ -21,11 +22,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.security.SignatureException;
-import java.util.Collections;
 import java.util.List;
 
 public class PutCommand extends AbstractCommand {
@@ -58,16 +56,11 @@ public class PutCommand extends AbstractCommand {
             final Path filePath = new Path(fileName);
             System.out.println("Processing file: " + fileName);
 
-            final FileStatus fileInfo = hadoopFs.getFileStatus(filePath);
-            final FSDataInputStream stream = hadoopFs.open(filePath);
-
-            try {
-                client.putObject(bucketName, fileName, fileInfo.getLen(), stream);
+            try (final FSDataInputStream stream = hadoopFs.open(filePath)) {
+                client.putObject(new PutObjectRequest(bucketName, fileName, stream));
             } catch (SignatureException e) {
                 System.out.println("Failed to compute DS3 signature");
                 throw new IOException(e);
-            } finally {
-                stream.close();
             }
         }
     }
@@ -100,7 +93,7 @@ public class PutCommand extends AbstractCommand {
         System.out.println("----- Priming DS3 -----");
 
         System.out.println("Files to perform bulk put for: " + objectList.toString());
-        final MasterObjectList masterObjectList = getDs3Client().bulkPut(getBucket(), objectList.iterator());
+        final MasterObjectList masterObjectList = getDs3Client().bulkPut(new BulkPutRequest(getBucket(), objectList)).getResult();
 
         final File tempFile = writeToTemp(masterObjectList);
 

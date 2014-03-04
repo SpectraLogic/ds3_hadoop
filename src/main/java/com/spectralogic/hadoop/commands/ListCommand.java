@@ -3,8 +3,10 @@ package com.spectralogic.hadoop.commands;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
+import com.spectralogic.ds3client.commands.GetBucketRequest;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.ListBucketResult;
+import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.hadoop.Arguments;
 import org.apache.hadoop.mapred.JobConf;
 
@@ -23,10 +25,26 @@ public class ListCommand extends AbstractCommand {
 
     @Override
     public Boolean call() throws Exception {
-        final ListBucketResult fileList = getDs3Client().listBucket(getBucket());
-
-        ASCIITable.getInstance().printTable(getHeaders(), formatBucketList(fileList));
-
+        try {
+            final ListBucketResult fileList = getDs3Client().getBucket(new GetBucketRequest(getBucket())).getResult();
+            if(fileList.getContentsList() == null) {
+                System.out.println("No objects were reported in the bucket.");
+            }
+            else {
+                ASCIITable.getInstance().printTable(getHeaders(), formatBucketList(fileList));
+            }
+        }
+        catch(FailedRequestException e) {
+            if(e.getStatusCode() == 500) {
+                System.out.println("Error: Cannot communicate with the remote DS3 appliance.");
+            }
+            else if(e.getStatusCode() == 404) {
+                System.out.println("Error: Unknown bucket.");
+            }
+            else {
+                System.out.println("Error: Encountered an unknown error of ("+ e.getStatusCode() +") while accessing the remote DS3 appliance.");
+            }
+        }
         return true;
     }
 
