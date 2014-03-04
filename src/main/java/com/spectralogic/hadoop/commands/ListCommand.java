@@ -34,7 +34,7 @@ public class ListCommand extends AbstractCommand {
                 ASCIITable.getInstance().printTable(getHeaders(), formatBucketList(fileList));
             }
         }
-        catch(FailedRequestException e) {
+        catch(final FailedRequestException e) {
             if(e.getStatusCode() == 500) {
                 System.out.println("Error: Cannot communicate with the remote DS3 appliance.");
             }
@@ -48,7 +48,7 @@ public class ListCommand extends AbstractCommand {
         return true;
     }
 
-    public String[][] formatBucketList(final ListBucketResult listBucketResult) {
+    private String[][] formatBucketList(final ListBucketResult listBucketResult) {
         final List<Contents> contentList = listBucketResult.getContentsList();
         final String[][] formatArray = new String[contentList.size()][];
 

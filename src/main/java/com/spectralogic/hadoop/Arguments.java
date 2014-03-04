@@ -128,7 +128,7 @@ public class Arguments {
     private List<String> getMissingArgs() {
         final List<String> missingArgs = new ArrayList<String>();
 
-        if (getBucket() == null) {
+        if (getBucket() == null && !bucketsCommand()) {
             missingArgs.add("b");
         }
 
@@ -147,13 +147,18 @@ public class Arguments {
         return missingArgs;
     }
 
+    private boolean bucketsCommand() {
+        return getCommand() == Command.BUCKETS;
+
+    }
+
     private boolean listCommand() {
-        return getCommand() == Command.JOBS || getCommand() == Command.LIST;
+        return getCommand() == Command.JOBS || getCommand() == Command.LIST || bucketsCommand();
     }
 
     public void printHelp() {
         final HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp("hdfs -jar FileMigrator.jar", options);
+        helpFormatter.printHelp("hdfs jar FileMigrator.jar", options);
     }
 
     public String getBucket() {

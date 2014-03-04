@@ -26,6 +26,10 @@ public class FileMigrator {
                 command = new JobListCommand(arguments);
                 break;
             }
+            case BUCKETS: {
+                command = new BucketsCommand(arguments);
+                break;
+            }
             case LIST:
             default: {
                 command = new ListCommand(arguments);
