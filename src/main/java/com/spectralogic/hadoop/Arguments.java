@@ -38,7 +38,7 @@ public class Arguments {
         accessKey.setArgName("accessKeyId");
         final Option secretKey = new Option("k", true, "Secret access key or have \"DS3_SECRET_KEY\" set as an environment variable");
         secretKey.setArgName("secretKey");
-        final Option command = new Option("c", true, "What command you want to perform.  Can be: [put, get, list, joblist]");
+        final Option command = new Option("c", true, "What command you want to perform.  Can be: [put, get, buckets, objects, joblist]");
         command.setArgName("command");
         final Option help = new Option("h", "Print Help Menu");
 
@@ -126,7 +126,7 @@ public class Arguments {
     }
 
     private List<String> getMissingArgs() {
-        final List<String> missingArgs = new ArrayList<String>();
+        final List<String> missingArgs = new ArrayList<>();
 
         if (getBucket() == null && !bucketsCommand()) {
             missingArgs.add("b");
@@ -153,7 +153,7 @@ public class Arguments {
     }
 
     private boolean listCommand() {
-        return getCommand() == Command.JOBS || getCommand() == Command.LIST || bucketsCommand();
+        return getCommand() == Command.JOBS || getCommand() == Command.OBJECTS || bucketsCommand();
     }
 
     public void printHelp() {

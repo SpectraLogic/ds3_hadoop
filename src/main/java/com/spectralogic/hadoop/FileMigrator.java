@@ -7,7 +7,6 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import java.io.*;
 import java.net.URISyntaxException;
 
-
 public class FileMigrator {
 
     private final AbstractCommand command;
@@ -30,7 +29,7 @@ public class FileMigrator {
                 command = new BucketsCommand(arguments);
                 break;
             }
-            case LIST:
+            case OBJECTS:
             default: {
                 command = new ListCommand(arguments);
                 break;
@@ -42,7 +41,6 @@ public class FileMigrator {
         command.call();
     }
 
-
     private static Arguments processArgs(final String args[]) throws IOException, MissingOptionException, BadArgumentException {
         final Arguments arguments = new Arguments();
         final Options options = arguments.getOptions();
@@ -52,7 +50,6 @@ public class FileMigrator {
 
         return arguments;
     }
-
 
     public static void main(final String args[]) throws Exception {
         final Arguments arguments = processArgs(args);
