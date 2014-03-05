@@ -56,8 +56,10 @@ public class PutCommand extends AbstractCommand {
             final Path filePath = new Path(fileName);
             System.out.println("Processing file: " + fileName);
 
+            final FileStatus fileInfo = hadoopFs.getFileStatus(filePath);
+
             try (final FSDataInputStream stream = hadoopFs.open(filePath)) {
-                client.putObject(new PutObjectRequest(bucketName, fileName, stream));
+                client.putObject(new PutObjectRequest(bucketName, fileName, fileInfo.getLen(), stream));
             } catch (SignatureException e) {
                 System.out.println("Failed to compute DS3 signature");
                 throw new IOException(e);
