@@ -9,8 +9,8 @@ repositories {
 }
 
 task copyToLib(type: Copy) {
-    into "$buildDir/resources/main/lib"
     from configurations.runtime
+    into "$buildDir/resources/main/lib"
 }
 
 jar.dependsOn copyToLib

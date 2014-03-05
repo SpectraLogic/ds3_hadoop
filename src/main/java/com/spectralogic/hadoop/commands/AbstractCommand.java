@@ -61,7 +61,9 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         init(conf);
 
         conf.set("secure", String.valueOf(arguments.isSecure()));
-        conf.set("bucket", bucket);
+        if(bucket != null) {
+            conf.set("bucket", bucket);
+        }
         conf.set("accessKeyId", arguments.getAccessKey());
         conf.set("secretKey", arguments.getSecretKey());
         conf.set("endpoint", arguments.getEndpoint());
