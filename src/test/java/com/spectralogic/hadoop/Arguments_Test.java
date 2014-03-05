@@ -92,7 +92,7 @@ public class Arguments_Test {
         args[6] = "-a";
         args[7] = "accessId";
         args[8] = "-c";
-        args[9] = "list";
+        args[9] = "objects";
 
         final GenericOptionsParser optParser = new GenericOptionsParser(new Configuration(), arguments.getOptions(), args);
         final CommandLine cmd = optParser.getCommandLine();
