@@ -52,10 +52,16 @@ public class FileMigrator {
     }
 
     public static void main(final String args[]) throws Exception {
-        final Arguments arguments = processArgs(args);
-        final FileMigrator migrator = new FileMigrator(arguments);
+        try {
+            final Arguments arguments = processArgs(args);
+            final FileMigrator migrator = new FileMigrator(arguments);
 
-        migrator.run();
+            migrator.run();
+        }
+        catch(final MissingOptionException e) {
+            System.out.println("Error: " + e.getMessage());
+            System.out.println("See the help command for a list of required arguments.");
+        }
     }
 
 }
