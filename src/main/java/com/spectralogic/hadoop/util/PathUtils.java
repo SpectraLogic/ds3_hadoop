@@ -2,6 +2,7 @@ package com.spectralogic.hadoop.util;
 
 
 import com.spectralogic.ds3client.models.Ds3Object;
+import org.apache.hadoop.fs.FileSystem;
 
 import java.io.File;
 import java.net.URI;
@@ -32,9 +33,17 @@ public class PathUtils {
     }
 
     public static boolean isDir(final Ds3Object obj) {
-        if(obj.getName().endsWith("/")) {
-            return true;
+        return obj.getName().endsWith("/");
+    }
+
+    public static String getWorkingDirPath(final FileSystem fs) {
+        return fs.getWorkingDirectory().toUri().getPath();
+    }
+
+    public static String removePrefixFromPath(final String path, final String name) {
+        if (name.startsWith(path)) {
+            return name.substring(path.length());
         }
-        return false;
+        return name;
     }
 }

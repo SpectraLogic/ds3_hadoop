@@ -48,4 +48,12 @@ public class PathUtils_Test {
         assertThat(PathUtils.isDir(obj), is(true));
     }
 
+    @Test
+    public void removePrefixTest() {
+        final String prefix = "/test/prefix";
+        final String fullPath = "/test/prefix/my/path";
+
+        assertThat(PathUtils.removePrefixFromPath(prefix, fullPath), is("/my/path"));
+    }
+
 }

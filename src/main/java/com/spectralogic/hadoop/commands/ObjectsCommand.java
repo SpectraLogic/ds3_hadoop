@@ -13,8 +13,8 @@ import org.apache.hadoop.mapred.JobConf;
 import java.io.IOException;
 import java.util.List;
 
-public class ListCommand extends AbstractCommand {
-    public ListCommand(Arguments arguments) throws IOException {
+public class ObjectsCommand extends AbstractCommand {
+    public ObjectsCommand(Arguments arguments) throws IOException {
         super(arguments);
     }
 

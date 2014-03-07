@@ -1,5 +1,7 @@
 package com.spectralogic.hadoop.commands;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 
@@ -87,19 +89,25 @@ public class PutCommand extends AbstractCommand {
         System.out.println("----- Generating File List -----");
 
         final List<FileStatus> fileList = getFileList(getInputDirectory());
-
-        final List<Ds3Object> objectList = convertFileStatusList(fileList);
+        final List<Ds3Object> objectList = Lists.transform(convertFileStatusList(fileList), new Function<Ds3Object, Ds3Object>() {
+            @Override
+            public Ds3Object apply(final Ds3Object input) {
+                final String path = PathUtils.getWorkingDirPath(getHdfs());
+                final String newName = PathUtils.removePrefixFromPath(path, input.getName());
+                input.setName(newName);
+                return input;
+            }
+        });
 
         verifyBucketExists();
 
         System.out.println("----- Priming DS3 -----");
-
         System.out.println("Files to perform bulk put for: " + objectList.toString());
+
         final MasterObjectList masterObjectList = getDs3Client().bulkPut(new BulkPutRequest(getBucket(), objectList)).getResult();
-
         final File tempFile = writeToTemp(masterObjectList);
-
         final String hadoopTempDir = getConf().get("hadoop.tmp.dir");
+
         System.out.println("Hadoop tmp dir: " + hadoopTempDir);
 
         final String fileListFile = PathUtils.join(hadoopTempDir, tempFile.getName());
@@ -112,13 +120,11 @@ public class PutCommand extends AbstractCommand {
 
         System.out.println("----- Starting job -----");
 
-
         final RunningJob runningJob = JobClient.runJob(getConf());
         runningJob.waitForCompletion();
 
         System.out.println("----- Finished Job -----");
         return true;
     }
-
 
 }

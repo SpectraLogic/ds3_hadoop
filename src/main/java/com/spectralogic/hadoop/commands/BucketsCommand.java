@@ -8,6 +8,7 @@ import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.hadoop.Arguments;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
@@ -53,7 +54,7 @@ public class BucketsCommand extends AbstractCommand {
         return formatArray;
     }
 
-    public ASCIITableHeader[] getHeaders() {
+    private ASCIITableHeader[] getHeaders() {
         return new ASCIITableHeader[]{
                 new ASCIITableHeader("Bucket Name", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Creation Date", ASCIITable.ALIGN_RIGHT)

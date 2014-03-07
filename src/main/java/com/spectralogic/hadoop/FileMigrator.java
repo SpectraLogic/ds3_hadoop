@@ -31,7 +31,7 @@ public class FileMigrator {
             }
             case OBJECTS:
             default: {
-                command = new ListCommand(arguments);
+                command = new ObjectsCommand(arguments);
                 break;
             }
         }
