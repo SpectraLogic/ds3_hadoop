@@ -54,9 +54,11 @@ public class PutCommand extends AbstractCommand {
             if(hadoopFs == null) {
                 throw new IOException("Could not connect to the hadoop fs.");
             }
+            final String rootPathName = PathUtils.getWorkingDirPath(hadoopFs);
             final String fileName = value.toString();
-            final Path filePath = new Path(fileName);
-            System.out.println("Processing file: " + fileName);
+            final String finalPath = PathUtils.join(rootPathName, fileName);
+            final Path filePath = new Path(finalPath);
+            System.out.println("Processing file: " + finalPath);
 
             final FileStatus fileInfo = hadoopFs.getFileStatus(filePath);
 

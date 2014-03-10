@@ -21,8 +21,17 @@ public class PathUtils {
     }
 
     public static String join(final String path1, final String path2) {
-        final File file1 = new File(path1);
-        return new File(file1, path2).toString().replace("\\","/");
+        if(path1 == null && path2 != null) {
+            return path2;
+        } else if (path2 == null && path1 != null) {
+            return path1;
+        } else if(path1 == null) {
+            return "";
+        }
+        else {
+            final File file1 = new File(path1);
+            return new File(file1, path2).toString().replace("\\","/");
+        }
     }
 
     public static String ensureStartsWithSlash(final String path) {

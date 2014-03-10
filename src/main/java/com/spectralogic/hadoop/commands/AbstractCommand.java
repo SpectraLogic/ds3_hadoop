@@ -68,6 +68,10 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         conf.set("secretKey", arguments.getSecretKey());
         conf.set("endpoint", arguments.getEndpoint());
 
+        if(arguments.getPrefix() != null) {
+            conf.set("prefix", arguments.getPrefix());
+        }
+
         hdfs = FileSystem.get(arguments.getConfiguration());
     }
 

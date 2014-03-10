@@ -56,4 +56,11 @@ public class PathUtils_Test {
         assertThat(PathUtils.removePrefixFromPath(prefix, fullPath), is("/my/path"));
     }
 
+    @Test
+    public void bullTestPath() {
+        assertThat(PathUtils.join(null, "path!"), is("path!"));
+        assertThat(PathUtils.join("path!", null), is("path!"));
+        assertThat(PathUtils.join(null, null), is(""));
+    }
+
 }

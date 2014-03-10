@@ -20,13 +20,14 @@ public class Arguments {
     private String secretKey;
     private boolean secure = false;
     private Command command;
+    private String prefix;
 
     public Arguments() {
         options = new Options();
         configuration = new Configuration();
 
-        final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint");
-        ds3Endpoint.setArgName("url");
+        final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
+        ds3Endpoint.setArgName("endpoint");
         final Option secure = new Option("s", false, "Set if the connection to the ds3 endpoint should be sent via https");
         final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
         sourceDirectory.setArgName("directory");
@@ -40,6 +41,8 @@ public class Arguments {
         secretKey.setArgName("secretKey");
         final Option command = new Option("c", true, "What command you want to perform.  Can be: [put, get, buckets, objects, joblist]");
         command.setArgName("command");
+        final Option prefix = new Option("p", true, "Specify a prefix to restore a bucket to.  This is an optional argument");
+        command.setArgName("prefix");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
@@ -50,8 +53,8 @@ public class Arguments {
         options.addOption(accessKey);
         options.addOption(secretKey);
         options.addOption(command);
+        options.addOption(prefix);
         options.addOption(help);
-
     }
 
     protected Options getOptions() {
@@ -59,21 +62,19 @@ public class Arguments {
     }
 
     protected void processCommandLine(final CommandLine cmd) throws MissingOptionException, BadArgumentException {
-        if(cmd.hasOption('h')) {
+        if (cmd.hasOption('h')) {
             printHelp();
             System.exit(0);
         }
 
         try {
             final String commandString = cmd.getOptionValue("c");
-            if(commandString == null) {
+            if (commandString == null) {
                 this.setCommand(null);
-            }
-            else {
+            } else {
                 this.setCommand(Command.valueOf(commandString.toUpperCase()));
             }
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadArgumentException("Unknown command", e);
         }
 
@@ -83,50 +84,52 @@ public class Arguments {
         this.setEndpoint(cmd.getOptionValue("e"));
         this.setAccessKey(cmd.getOptionValue("a"));
         this.setSecretKey(cmd.getOptionValue("k"));
+        this.setPrefix(cmd.getOptionValue("p"));
 
-        if(cmd.hasOption("s")) {
+        if (cmd.hasOption("s")) {
             this.setSecure(true);
         }
 
         final List<String> missingArgs = getMissingArgs();
 
-        if(getEndpoint() == null) {
+        if (getEndpoint() == null) {
             final String endpoint = System.getenv("DS3_ENDPOINT");
-            if(endpoint == null) {
+            if (endpoint == null) {
                 missingArgs.add("e");
-            }
-            else {
+            } else {
                 setEndpoint(endpoint);
             }
         }
 
-        if(getSecretKey() == null) {
+        if (getSecretKey() == null) {
             final String key = System.getenv("DS3_SECRET_KEY");
-            if(key == null) {
+            if (key == null) {
                 missingArgs.add("k");
-            }
-            else {
+            } else {
                 setSecretKey(key);
             }
         }
 
-        if(getAccessKey() == null) {
+        if (getAccessKey() == null) {
             final String key = System.getenv("DS3_ACCESS_KEY");
-            if(key == null) {
+            if (key == null) {
                 missingArgs.add("a");
-            }
-            else {
+            } else {
                 setAccessKey(key);
             }
         }
 
-        if(!missingArgs.isEmpty()) {
+        if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
     }
 
     private List<String> getMissingArgs() {
         final List<String> missingArgs = new ArrayList<>();
+
+        if (getCommand() == null) {
+            missingArgs.add("c");
+        }
 
         if (getBucket() == null && !bucketsCommand()) {
             missingArgs.add("b");
@@ -138,10 +141,6 @@ public class Arguments {
 
         if (getSrcDir() == null && getCommand() == Command.PUT) {
             missingArgs.add("i");
-        }
-
-        if (getCommand() == null) {
-            missingArgs.add("c");
         }
 
         return missingArgs;
@@ -227,5 +226,13 @@ public class Arguments {
 
     private void setCommand(Command command) {
         this.command = command;
+    }
+
+    private void setPrefix(final String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getPrefix() {
+        return prefix;
     }
 }

@@ -34,6 +34,7 @@ public class GetCommand extends AbstractCommand {
         private Ds3Client client;
         private FileSystem hadoopFs;
         private String bucketName;
+        private String prefix;
 
         @Override
         public void configure(final JobConf conf) {
@@ -46,6 +47,7 @@ public class GetCommand extends AbstractCommand {
                 hadoopFs = null;
             }
             bucketName = conf.get("bucket");
+            prefix = conf.get("prefix");
         }
 
         @Override
@@ -53,13 +55,18 @@ public class GetCommand extends AbstractCommand {
             if(hadoopFs == null) {
                 throw new IOException("Could not connect to the hadoop fs.");
             }
-            final String fileName = value.toString();
-            final Path filePath = new Path(PathUtils.ensureStartsWithSlash(fileName));
+            final String rootPathName = PathUtils.join(PathUtils.getWorkingDirPath(hadoopFs), prefix);
+            final String fileEndPath = value.toString();
+            final String fileName = PathUtils.join(rootPathName, fileEndPath);
 
-            System.out.println("Processing file: " + fileName);
+            final Path ds3FilePath = new Path(PathUtils.ensureStartsWithSlash(fileName));
 
-            try(final InputStream getStream = client.getObject(new GetObjectRequest(bucketName, fileName)).getContent();
-                final FSDataOutputStream hdfsStream = hadoopFs.create(filePath)) {
+            System.out.println("Processing file: " + fileEndPath);
+            System.out.println("Writing to file: " + fileName);
+
+
+            try(final InputStream getStream = client.getObject(new GetObjectRequest(bucketName, fileEndPath)).getContent();
+                final FSDataOutputStream hdfsStream = hadoopFs.create(ds3FilePath)) {
 
                 IOUtils.copy(getStream, hdfsStream);
                 hdfsStream.close();
@@ -77,7 +84,7 @@ public class GetCommand extends AbstractCommand {
     }
 
     @Override
-    public void init(JobConf conf) {
+    public void init(final JobConf conf) {
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(LongWritable.class);
 
@@ -92,12 +99,10 @@ public class GetCommand extends AbstractCommand {
 
         // ------------- Get file list from DS3 -------------
         final ListBucketResult fileList = getDs3Client().getBucket(new GetBucketRequest(getBucket())).getResult();
-
         final List<Ds3Object> objects = convertToList(fileList);
 
         // prime ds3
         final MasterObjectList result = getDs3Client().bulkGet(new BulkGetRequest(getBucket(), Lists.newArrayList(ListUtils.filterDirectories(objects)))).getResult();
-
         final File tempFile = writeToTemp(result);
 
         final String fileListFile = PathUtils.join(getConf().get("hadoop.tmp.dir"), tempFile.getName());
