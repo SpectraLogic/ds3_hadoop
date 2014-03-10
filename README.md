@@ -53,7 +53,7 @@ The File Migrator application builds on top of the existing Map/Reduce command l
 
 ### Example Usage
 
-#Note#: All the following examples assume that you have set the `accessId`, `secretKey`, and `endpoint` as environment variables.
+**Note:** All the following examples assume that you have set the `accessId`, `secretKey`, and `endpoint` as environment variables.
 
 List All Buckets
 
