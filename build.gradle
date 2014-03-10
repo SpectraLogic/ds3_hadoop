@@ -30,3 +30,7 @@ dependencies {
     compile 'com.google.guava:guava:16.0.1'
     testCompile 'junit:junit:4.11'
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.11'
+}
