@@ -69,7 +69,6 @@ public class GetCommand extends AbstractCommand {
                 final FSDataOutputStream hdfsStream = hadoopFs.create(ds3FilePath)) {
 
                 IOUtils.copy(getStream, hdfsStream);
-                hdfsStream.close();
 
             } catch (final SignatureException e) {
                 System.out.println("Failed to compute DS3 signature");
