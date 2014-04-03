@@ -2,7 +2,6 @@ package com.spectralogic.hadoop.commands;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.BulkGetRequest;
 import com.spectralogic.ds3client.commands.GetBucketRequest;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
@@ -38,7 +37,7 @@ public class GetCommand extends AbstractCommand {
 
         @Override
         public void configure(final JobConf conf) {
-            final Ds3ClientBuilder builder = new Ds3ClientBuilder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
+            final Ds3Client.Builder builder = Ds3Client.builder(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
             client = builder.withHttpSecure(Boolean.valueOf(conf.get("secure"))).build();
             try {
                 hadoopFs = FileSystem.get(new Configuration());
