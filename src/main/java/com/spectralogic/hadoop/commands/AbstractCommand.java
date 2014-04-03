@@ -1,8 +1,6 @@
 package com.spectralogic.hadoop.commands;
 
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.Ds3ClientBuilder;
-
 import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.PutBucketRequest;
 import com.spectralogic.ds3client.models.*;
@@ -36,7 +34,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
     private final Path outputDirectory;
 
     public AbstractCommand(final Arguments arguments) throws IOException {
-        final Ds3ClientBuilder builder = new Ds3ClientBuilder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
+        final Ds3Client.Builder builder = Ds3Client.builder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
         ds3Client = builder.withHttpSecure(arguments.isSecure()).build();
 
         //These args should only be null on list commands.
