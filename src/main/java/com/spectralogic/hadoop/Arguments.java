@@ -42,7 +42,7 @@ public class Arguments {
         final Option command = new Option("c", true, "What command you want to perform.  Can be: [put, get, buckets, objects, joblist]");
         command.setArgName("command");
         final Option prefix = new Option("p", true, "Specify a prefix to restore a bucket to.  This is an optional argument");
-        command.setArgName("prefix");
+        prefix.setArgName("prefix");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
