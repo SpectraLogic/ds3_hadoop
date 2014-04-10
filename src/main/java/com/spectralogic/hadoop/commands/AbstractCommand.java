@@ -35,7 +35,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
 
     public AbstractCommand(final Arguments arguments) throws IOException {
         final Ds3Client.Builder builder = Ds3Client.builder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
-        ds3Client = builder.withHttpSecure(arguments.isSecure()).build();
+        ds3Client = builder.withHttpSecure(arguments.isSecure()).withRedirectRetries(arguments.getRedirectRetries()).build();
 
         //These args should only be null on list commands.
         if(arguments.getSrcDir() != null) {
