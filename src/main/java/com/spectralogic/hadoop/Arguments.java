@@ -21,6 +21,7 @@ public class Arguments {
     private boolean secure = false;
     private Command command;
     private String prefix;
+    private int retries = 5;
 
     public Arguments() {
         options = new Options();
@@ -43,6 +44,8 @@ public class Arguments {
         command.setArgName("command");
         final Option prefix = new Option("p", true, "Specify a prefix to restore a bucket to.  This is an optional argument");
         prefix.setArgName("prefix");
+        final Option redirectRetries = new Option("r", true, "Specify how many time a mapper should retry after receiving a 307 redirect.  Defaults to 5");
+        redirectRetries.setArgName("redirectRetries");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
@@ -54,6 +57,7 @@ public class Arguments {
         options.addOption(secretKey);
         options.addOption(command);
         options.addOption(prefix);
+        options.addOption(redirectRetries);
         options.addOption(help);
     }
 
@@ -85,6 +89,15 @@ public class Arguments {
         this.setAccessKey(cmd.getOptionValue("a"));
         this.setSecretKey(cmd.getOptionValue("k"));
         this.setPrefix(cmd.getOptionValue("p"));
+
+        if(cmd.hasOption("r")) {
+            try {
+                this.setRedirectRetries(Integer.valueOf(cmd.getOptionValue("r")));
+            }
+            catch (final NumberFormatException e) {
+                throw new BadArgumentException("Redirect Retries must be an integer", e);
+            }
+        }
 
         if (cmd.hasOption("s")) {
             this.setSecure(true);
@@ -234,5 +247,13 @@ public class Arguments {
 
     public String getPrefix() {
         return prefix;
+    }
+
+    private void setRedirectRetries(final int retries) {
+        this.retries = retries;
+    }
+
+    public int getRedirectRetries() {
+        return retries;
     }
 }
