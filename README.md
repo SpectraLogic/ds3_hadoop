@@ -6,7 +6,9 @@ A Hadoop Map/Reduce application that migrates data between a Hadoop Cluster and 
 
 ## Installing
 
-The install the File Migrator requires extracting a jar file from a tar file.
+To install the latest ds3_hadoop code either download the latest release jar file from the [Releases](../../releases) page or clone the repository and run `./gradlew install` to install the sdk into your local maven repository.
+
+**NOTE:** In order to successfully build ds3_hadoop with gradle the [java_ds3_sdk](https://github.com/SpectraLogic/ds3_java_sdk) must be installed in the local maven repository.
 
 ## Running
 

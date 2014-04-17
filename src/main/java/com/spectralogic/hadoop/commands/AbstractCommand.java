@@ -1,3 +1,18 @@
+/*
+ * ******************************************************************************
+ *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
+ *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *   this file except in compliance with the License. A copy of the License is located at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   or in the "license" file accompanying this file.
+ *   This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *   CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *   specific language governing permissions and limitations under the License.
+ * ****************************************************************************
+ */
+
 package com.spectralogic.hadoop.commands;
 
 import com.spectralogic.ds3client.Ds3Client;
@@ -33,7 +48,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
     private final Path inputDirectory;
     private final Path outputDirectory;
 
-    public AbstractCommand(final Arguments arguments) throws IOException {
+    AbstractCommand(final Arguments arguments) throws IOException {
         final Ds3Client.Builder builder = Ds3Client.builder(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
         ds3Client = builder.withHttpSecure(arguments.isSecure()).withRedirectRetries(arguments.getRedirectRetries()).build();
 
@@ -76,19 +91,17 @@ public abstract class AbstractCommand implements Callable<Boolean> {
     /**
      * Sets Job specific information related to what Mappers and
      * Reduces are going to run.  This is called by the Abstract
-     * class's constructor.This method does not need to worry about
+     * class's constructor.  This method does not need to worry about
      * setting any of the command line parameters.
-     * @param conf
      */
-    public abstract void init(final JobConf conf);
+    protected abstract void init(final JobConf conf);
 
     /**
      * Generates a list of all the files contained within @param directoryPath
-     * @param directoryPath
-     * @return
+     * @param directoryPath The Hadoop Path to search for files in.
      * @throws java.io.IOException
      */
-    public List<FileStatus> getFileList(final Path directoryPath) throws IOException {
+    List<FileStatus> getFileList(final Path directoryPath) throws IOException {
         final ArrayList<FileStatus> fileList = new ArrayList<>();
         final FileStatus[] files = hdfs.listStatus(directoryPath);
         if(files.length != 0) {
@@ -104,7 +117,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         return fileList;
     }
 
-    protected List<Ds3Object> convertFileStatusList(final List<FileStatus> fileList) {
+    List<Ds3Object> convertFileStatusList(final List<FileStatus> fileList) {
         final List<Ds3Object> objectList = new ArrayList<>();
 
         for (final FileStatus file: fileList) {
@@ -113,7 +126,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         return objectList;
     }
 
-    protected Ds3Object fileStatusToDs3Object(final FileStatus fileStatus) {
+    Ds3Object fileStatusToDs3Object(final FileStatus fileStatus) {
         final Ds3Object obj = new Ds3Object();
         try {
             obj.setName(PathUtils.stripPath(fileStatus.getPath().toString()));
@@ -130,7 +143,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
      * @throws java.security.SignatureException
      * @throws IOException
      */
-    protected void verifyBucketExists() throws SignatureException, IOException {
+    void verifyBucketExists() throws SignatureException, IOException {
         System.out.println("Verify bucket exists.");
         final ListAllMyBucketsResult bucketList = ds3Client.getService(new GetServiceRequest()).getResult();
         System.out.println("got buckets back: " + bucketList.toString());
@@ -149,7 +162,7 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         ds3Client.putBucket(new PutBucketRequest(bucket));
     }
 
-    protected File writeToTemp(MasterObjectList masterObjectList) throws IOException {
+    File writeToTemp(MasterObjectList masterObjectList) throws IOException {
         final File tempFile = File.createTempFile("migrator","dat");
         final PrintWriter writer = new PrintWriter(new FileWriter(tempFile));
 
@@ -166,27 +179,27 @@ public abstract class AbstractCommand implements Callable<Boolean> {
         return tempFile;
     }
 
-    protected FileSystem getHdfs() {
+    FileSystem getHdfs() {
         return hdfs;
     }
 
-    protected String getBucket() {
+    String getBucket() {
         return bucket;
     }
 
-    protected Ds3Client getDs3Client() {
+    Ds3Client getDs3Client() {
         return ds3Client;
     }
 
-    protected Path getInputDirectory() {
+    Path getInputDirectory() {
         return inputDirectory;
     }
 
-    protected Path getOutputDirectory() {
+    Path getOutputDirectory() {
         return outputDirectory;
     }
 
-    protected JobConf getConf() {
+    JobConf getConf() {
         return conf;
     }
 }
