@@ -30,7 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ListUtils_Test {
     @Test
     public void testFilter() {
-        final List<Ds3Object> objects = new ArrayList<Ds3Object>();
+        final List<Ds3Object> objects = new ArrayList<>();
         objects.add(new Ds3Object("hi", 3));
         objects.add(new Ds3Object("hiAgain", 12));
         objects.add(new Ds3Object("folder/", 0));

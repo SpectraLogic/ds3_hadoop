@@ -26,8 +26,6 @@ import java.net.URISyntaxException;
 public class PathUtils {
     /**
      * Strips out the path from a uri.
-     * @param path
-     * @return
      * @throws URISyntaxException
      */
     public static String stripPath(final String path) throws URISyntaxException {

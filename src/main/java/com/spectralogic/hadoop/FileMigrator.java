@@ -26,7 +26,7 @@ public class FileMigrator {
 
     private final AbstractCommand command;
 
-    public FileMigrator(final Arguments arguments) throws IOException, URISyntaxException {
+    public FileMigrator(final Arguments arguments) throws IOException {
         switch(arguments.getCommand()) {
             case PUT: {
                 command = new PutCommand(arguments);
@@ -52,7 +52,7 @@ public class FileMigrator {
         }
     }
 
-    public void run() throws Exception {
+    void run() throws Exception {
         command.call();
     }
 

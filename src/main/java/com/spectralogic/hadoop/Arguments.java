@@ -76,11 +76,11 @@ public class Arguments {
         options.addOption(help);
     }
 
-    protected Options getOptions() {
+    Options getOptions() {
         return options;
     }
 
-    protected void processCommandLine(final CommandLine cmd) throws MissingOptionException, BadArgumentException {
+    void processCommandLine(final CommandLine cmd) throws MissingOptionException, BadArgumentException {
         if (cmd.hasOption('h')) {
             printHelp();
             System.exit(0);
@@ -183,7 +183,7 @@ public class Arguments {
         return getCommand() == Command.JOBS || getCommand() == Command.OBJECTS || bucketsCommand();
     }
 
-    public void printHelp() {
+    void printHelp() {
         final HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.printHelp("hdfs jar FileMigrator.jar", options);
     }

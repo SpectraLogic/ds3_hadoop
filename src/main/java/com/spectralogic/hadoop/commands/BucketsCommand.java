@@ -23,7 +23,6 @@ import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.hadoop.Arguments;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
