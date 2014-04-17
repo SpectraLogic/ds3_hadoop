@@ -16,6 +16,7 @@
 apply plugin: "java"
 apply plugin: "maven"
 
+version = '0.1.0'
 sourceCompatibility = JavaVersion.VERSION_1_7
 
 repositories {
@@ -41,7 +42,7 @@ dependencies {
     compile 'javax.activation:activation:1.1'
     compile 'org.apache.hadoop:hadoop-core:1.2.1'
     //compile 'org.apache.hadoop:hadoop-common:0.23.10'
-    compile 'com.spectralogic:ds3_java_sdk:0.1.8-SNAPSHOT'
+    compile 'com.spectralogic:ds3_java_sdk:0.2.3-SNAPSHOT'
     compile 'com.google.guava:guava:16.0.1'
     testCompile 'junit:junit:4.11'
 }
