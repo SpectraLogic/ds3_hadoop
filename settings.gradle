@@ -1,0 +1,2 @@
+include 'cli', 'core'
+rootProject.name = 'ds3_hadoop'

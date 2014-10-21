@@ -2,7 +2,7 @@
 /.idea
 /out
 /output
-/build
+build/
 atlassian-ide-plugin.xml
 *.iml
 *.txt
