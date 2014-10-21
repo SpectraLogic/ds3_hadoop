@@ -1,9 +1,11 @@
-/.gradle
-/.idea
-/out
-/output
+.gradle/
+.idea/
+out/
+output/
 build/
+classes/
 atlassian-ide-plugin.xml
 *.iml
 *.txt
 *.class
+*.swp
