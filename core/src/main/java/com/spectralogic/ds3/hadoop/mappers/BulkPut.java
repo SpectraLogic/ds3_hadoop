@@ -16,12 +16,14 @@
 package com.spectralogic.ds3.hadoop.mappers;
 
 
+import com.spectralogic.ds3.hadoop.Constants;
+import com.spectralogic.ds3.hadoop.util.PathUtils;
 import com.spectralogic.ds3.hadoop.util.SeekableReadHadoopChannel;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.PutObjectRequest;
 import com.spectralogic.ds3client.models.Credentials;
-import com.spectralogic.ds3.hadoop.util.PathUtils;
+import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -36,45 +38,45 @@ import java.util.UUID;
 
 public class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text, Text, LongWritable> {
 
-        private Ds3Client client;
-        private FileSystem hadoopFs;
-        private String bucketName;
-        private UUID jobId;
+    private Ds3Client client;
+    private FileSystem hadoopFs;
+    private String bucketName;
+    private UUID jobId;
 
-        @Override
-        public void configure(final JobConf conf) {
-            final Ds3ClientBuilder builder = Ds3ClientBuilder.create(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
-            this.client = builder.withHttps(Boolean.valueOf(conf.get("https")))
-                    .withCertificateVerification(Boolean.valueOf(conf.get("certificateVerification"))).build();
-            try {
-                this.hadoopFs = FileSystem.get(new Configuration());
-            } catch (final IOException e) {
-                e.printStackTrace();
-                this.hadoopFs = null;
-            }
-            this.bucketName = conf.get("bucket");
-            this.jobId = UUID.fromString(conf.get("jobId"));
+    @Override
+    public void configure(final JobConf conf) {
+        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(conf.get(Constants.ENDPOINT), new Credentials(conf.get(Constants.ACCESSKEY), conf.get(Constants.SECRETKEY)));
+        this.client = builder.withHttps(Boolean.valueOf(conf.get(Constants.HTTPS)))
+                .withCertificateVerification(Boolean.valueOf(conf.get(Constants.CERTIFICATE_VERIFICATION))).build();
+        try {
+            this.hadoopFs = FileSystem.get(new Configuration());
+        } catch (final IOException e) {
+            e.printStackTrace();
+            this.hadoopFs = null;
+        }
+        this.bucketName = conf.get(Constants.BUCKET);
+        this.jobId = UUID.fromString(conf.get(Constants.JOB_ID));
+    }
+
+    @Override
+    public void map(final LongWritable longWritable, final Text value, final OutputCollector<Text, LongWritable> output, final Reporter reporter) throws IOException {
+        if (hadoopFs == null) {
+            throw new IOException("Could not connect to the hadoop fs.");
         }
 
-        @Override
-        public void map(final LongWritable longWritable, final Text value, final OutputCollector<Text, LongWritable> output, final Reporter reporter) throws IOException {
-            if(hadoopFs == null) {
-                throw new IOException("Could not connect to the hadoop fs.");
-            }
-            final String rootPathName = PathUtils.getWorkingDirPath(hadoopFs);
-            final String[] fileDetails = value.toString().split(",");
-            final String fileName = fileDetails[0];
-            final long offset = Long.parseLong(fileDetails[1]);
-            final long length = Long.parseLong(fileDetails[2]);
-            final String finalPath = PathUtils.join(rootPathName, fileName);
-            final Path filePath = new Path(finalPath);
-            System.out.println("Processing file: " + finalPath);
+        final FileEntry entry = FileEntry.fromString(value.toString());
 
-            try (final FSDataInputStream stream = hadoopFs.open(filePath)) {
-                client.putObject(new PutObjectRequest(bucketName, fileName, jobId, length, offset, SeekableReadHadoopChannel.wrap(stream, length, offset)));
-            } catch (SignatureException e) {
-                System.out.println("Failed to compute DS3 signature");
-                throw new IOException(e);
-            }
+        final String rootPathName = PathUtils.getWorkingDirPath(hadoopFs);
+        final String finalPath = PathUtils.join(rootPathName, entry.getFileName());
+        final Path filePath = new Path(finalPath);
+        System.out.println("Processing file: " + finalPath);
+
+        try (final FSDataInputStream stream = hadoopFs.open(filePath)) {
+            client.putObject(new PutObjectRequest(bucketName, entry.getFileName(), jobId, entry.getLength(), entry.getOffset(),
+                    SeekableReadHadoopChannel.wrap(stream, entry.getLength(), entry.getOffset())));
+        } catch (SignatureException e) {
+            System.out.println("Failed to compute DS3 signature");
+            throw new IOException(e);
         }
     }
+}

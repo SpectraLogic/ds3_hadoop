@@ -16,8 +16,11 @@
 package com.spectralogic.ds3.hadoop.util;
 
 
+import com.spectralogic.ds3.hadoop.mappers.FileEntry;
+import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 import java.io.File;
 import java.net.URI;
@@ -25,7 +28,7 @@ import java.net.URISyntaxException;
 
 public class PathUtils {
     /**
-     * Strips out the path from a uri.
+     * Returns the path from a uri.
      * @throws URISyntaxException
      */
     public static String stripPath(final String path) throws URISyntaxException {
@@ -45,6 +48,7 @@ public class PathUtils {
             final File file1 = new File(path1);
             return new File(file1, path2).toString().replace("\\","/");
         }
+
     }
 
     public static String ensureStartsWithSlash(final String path) {
@@ -69,4 +73,22 @@ public class PathUtils {
         return name;
     }
 
+    public static String objPath(final BulkObject obj) {
+        return objPath(obj.getName(), obj.getOffset());
+    }
+
+    public static String objPath(final FileEntry fileEntry) {
+        return objPath(fileEntry.getFileName(), fileEntry.getOffset());
+    }
+
+    private static String objPath(final String fileName, final long offset) {
+        final String objName;
+        if (offset == 0) {
+            return fileName;
+        }
+        else {
+            return fileName + "-" + Long.toString(offset);
+        }
+
+    }
 }

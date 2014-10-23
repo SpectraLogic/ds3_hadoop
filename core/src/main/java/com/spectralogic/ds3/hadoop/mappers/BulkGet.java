@@ -15,6 +15,7 @@
 
 package com.spectralogic.ds3.hadoop.mappers;
 
+import com.spectralogic.ds3.hadoop.Constants;
 import com.spectralogic.ds3.hadoop.util.PathUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
@@ -33,9 +34,6 @@ import java.nio.channels.WritableByteChannel;
 import java.security.SignatureException;
 import java.util.UUID;
 
-/**
-* Created by ryanmo on 10/16/2014.
-*/
 public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text, Text, LongWritable> {
 
     private Ds3Client client;
@@ -46,18 +44,18 @@ public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text,
 
     @Override
     public void configure(final JobConf conf) {
-        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(conf.get("endpoint"), new Credentials(conf.get("accessKeyId"), conf.get("secretKey")));
-        this.client = builder.withHttps(Boolean.valueOf(conf.get("https")))
-                .withCertificateVerification(Boolean.valueOf(conf.get("certificateVerification"))).build();
+        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(conf.get(Constants.ENDPOINT), new Credentials(conf.get(Constants.ACCESSKEY), conf.get(Constants.SECRETKEY)));
+        this.client = builder.withHttps(Boolean.valueOf(conf.get(Constants.HTTPS)))
+                .withCertificateVerification(Boolean.valueOf(conf.get(Constants.CERTIFICATE_VERIFICATION))).build();
         try {
             hadoopFs = FileSystem.get(new Configuration());
         } catch (final IOException e) {
             e.printStackTrace();
             hadoopFs = null;
         }
-        bucketName = conf.get("bucket");
-        prefix = conf.get("prefix");
-        jobId = UUID.fromString(conf.get("jobId"));
+        bucketName = conf.get(Constants.BUCKET);
+        prefix = conf.get(Constants.PREFIX);
+        jobId = UUID.fromString(conf.get(Constants.JOB_ID));
     }
 
     @Override
@@ -66,19 +64,18 @@ public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text,
             throw new IOException("Could not connect to the hadoop fs.");
         }
         final String rootPathName = PathUtils.join(PathUtils.getWorkingDirPath(hadoopFs), prefix);
-        final String fileEndPath = value.toString();
-        final String fileName = PathUtils.join(rootPathName, fileEndPath);
+        final FileEntry entry = FileEntry.fromString(value.toString());
+        final String fileName = PathUtils.join(rootPathName, PathUtils.objPath(entry));
 
         final Path ds3FilePath = new Path(PathUtils.ensureStartsWithSlash(fileName));
 
-        System.out.println("Processing file: " + fileEndPath);
+        System.out.println("Processing file: " + entry.getFileName());
         System.out.println("Writing to file: " + fileName);
 
         final WritableByteChannel outChannel = Channels.newChannel(hadoopFs.create(ds3FilePath));
 
-        //TODO come back and populate the job id information
         try {
-            client.getObject(new GetObjectRequest(bucketName, fileEndPath, outChannel));
+            client.getObject(new GetObjectRequest(bucketName, entry.getFileName(), entry.getOffset(), jobId, outChannel));
         } catch (final SignatureException e) {
             System.out.println("Failed to compute DS3 signature");
             e.printStackTrace();

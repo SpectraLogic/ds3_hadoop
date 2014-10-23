@@ -15,12 +15,25 @@
 
 package com.spectralogic.ds3.hadoop;
 
+import com.spectralogic.ds3.hadoop.mappers.BulkGet;
+import com.spectralogic.ds3.hadoop.options.HadoopOptions;
+import com.spectralogic.ds3.hadoop.options.ReadOptions;
+import com.spectralogic.ds3.hadoop.util.HdfsUtils;
+import com.spectralogic.ds3.hadoop.util.PathUtils;
 import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.commands.GetAvailableJobChunksRequest;
+import com.spectralogic.ds3client.commands.GetAvailableJobChunksResponse;
+import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
+import com.spectralogic.ds3client.models.bulk.Objects;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.*;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
+import java.security.SignatureException;
+import java.util.*;
 
 class ReadJobImpl implements Job {
 
@@ -29,13 +42,17 @@ class ReadJobImpl implements Job {
     private final String bucketName;
     private final MasterObjectList masterObjectList;
     private final FileSystem hdfs;
+    private final ReadOptions readOptions;
+    private final HadoopOptions hadoopOptions;
 
-    ReadJobImpl(final Ds3Client client, final FileSystem hdfs, final MasterObjectList result) {
+    ReadJobImpl(final Ds3Client client, final FileSystem hdfs, final MasterObjectList result, final HadoopOptions hadoopOptions, final ReadOptions readOptions) {
         this.client = client;
         this.hdfs = hdfs;
         this.masterObjectList = result;
         this.jobId = masterObjectList.getJobId();
         this.bucketName = masterObjectList.getBucketName();
+        this.readOptions = readOptions;
+        this.hadoopOptions = hadoopOptions;
     }
 
     @Override
@@ -49,24 +66,132 @@ class ReadJobImpl implements Job {
     }
 
     @Override
-    public void transfer() throws IOException {
+    public void transfer() throws IOException, SignatureException {
+        final ChunkGenerator chunkGenerator = new ChunkGenerator(client, jobId, masterObjectList.getObjects());
+        final ObjectPartTracker partTracker = new ObjectPartTracker();
+        final JobClient jobClient = new JobClient(hadoopOptions.getJobTracker(), hadoopOptions.getConfig());
 
-        // Loop through each chunk and submit a new job
+        while(chunkGenerator.hasNext()) {
+            final List<Objects> chunks = chunkGenerator.getAvailableChunks();
+            partTracker.addObjects(chunks);
+            final JobConf jobConf = HdfsUtils.createJob(client.getConnectionDetails(), bucketName, BulkGet.class);
 
+            final File tempFile = HdfsUtils.writeToTemp(chunks);
+            final String fileListPath = PathUtils.join(readOptions.getHadoopTmpDir(), tempFile.getName());
+            hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(fileListPath));
+            jobConf.set(Constants.HADOOP_TMP_DIR, readOptions.getHadoopTmpDir());
 
-        /*
-        final File tempFile = HdfsUtils.writeToTemp(result);
+            FileInputFormat.setInputPaths(jobConf, fileListPath);
+            FileOutputFormat.setOutputPath(jobConf, new Path(readOptions.getJobOutputDir()));
 
-        final String fileListFile = PathUtils.join(conf.get(Constants.HADOOP_TMP_DIR), tempFile.getName());
+            System.out.println("----- Starting get job -----");
 
-        this.hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(conf.get(Constants.HADOOP_TMP_DIR)));
+            final RunningJob runningJob = jobClient.submitJob(jobConf);
+            runningJob.waitForCompletion();
 
-        FileInputFormat.setInputPaths(conf, fileListFile);
-        FileOutputFormat.setOutputPath(conf, getOutputDirectory());
+            System.out.println("----- Job finished running -----");
+        }
 
-        final RunningJob runningJob = JobClient.runJob(conf);
-        runningJob.waitForCompletion();
-        */
+        partTracker.joinParts(hdfs);
     }
 
+    private class ChunkGenerator {
+
+        private Ds3Client client;
+        private final List<Objects> objectChunks;
+        private Set<UUID> toGetSet;
+        private UUID jobId;
+
+        public ChunkGenerator(final Ds3Client client, final UUID jobId, final List<Objects> objectChunks) {
+            this.client = client;
+            this.jobId = jobId;
+            this.objectChunks = objectChunks;
+            this.toGetSet = new HashSet<>();
+            populateToGetSet();
+        }
+
+        private void populateToGetSet() {
+            for (final Objects objs : objectChunks) {
+                this.toGetSet.add(objs.getChunkId());
+            }
+        }
+
+        public boolean hasNext() {
+            return !toGetSet.isEmpty();
+        }
+
+        public List<Objects> getAvailableChunks() throws IOException, SignatureException {
+            while(true) {
+                final GetAvailableJobChunksResponse response = client.getAvailableJobChunks(new GetAvailableJobChunksRequest(jobId));
+
+                switch (response.getStatus()) {
+                    case AVAILABLE: {
+                        final List<Objects> objsList = response.getMasterObjectList().getObjects();
+                        for (final Objects objs: objsList) {
+                            toGetSet.remove(objs.getChunkId());
+                        }
+                        return objsList;
+                    }
+                    case RETRYLATER: {
+                        try {
+                            Thread.sleep(response.getRetryAfterSeconds()*1000);
+                        } catch (final InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private class ObjectPartTracker {
+        private final Map<String, SortedSet<String>> objectParts;
+
+        public ObjectPartTracker() {
+            this.objectParts = new HashMap<>();
+        }
+
+        public void addObjects(final List<Objects> newChunks) {
+            for (final Objects chunk : newChunks) {
+                for (final BulkObject obj : chunk.getObjects()) {
+                    final Set<String> seenParts = getParts(obj);
+                    if (obj.getOffset() != 0) {
+                        seenParts.add(PathUtils.objPath(obj));
+                    }
+                }
+            }
+        }
+
+        private SortedSet<String> getParts(final BulkObject obj) {
+            SortedSet<String> chunks = objectParts.get(obj.getName());
+            if (chunks == null) {
+                chunks = new TreeSet<>();
+                objectParts.put(obj.getName(), chunks);
+            }
+            return chunks;
+        }
+
+        public void joinParts(final FileSystem hdfs) throws IOException {
+            for(final Map.Entry<String, SortedSet<String>> parts : objectParts.entrySet()) {
+                if (parts.getValue().isEmpty()) {
+                    continue;
+                }
+                final Path[] partPaths = toPaths(parts.getValue());
+                hdfs.concat(new Path(parts.getKey()), partPaths);
+            }
+        }
+
+        private Path[] toPaths(final Set<String> value) {
+            final Path[] paths = new Path[value.size()];
+            final Iterator<String> iter = value.iterator();
+            int i = 0;
+            while(iter.hasNext()){
+                paths[i] = new Path(iter.next());
+                i++;
+            }
+
+            return paths;
+        }
+    }
 }

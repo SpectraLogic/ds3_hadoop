@@ -16,6 +16,7 @@
 package com.spectralogic.ds3.hadoop;
 
 import com.spectralogic.ds3.hadoop.options.HadoopOptions;
+import com.spectralogic.ds3.hadoop.options.ReadOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -40,7 +41,7 @@ public abstract class HadoopHelper {
 
     public abstract Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final WriteOptions options) throws SignatureException, IOException, XmlProcessingException;
 
-    public abstract Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects) throws SignatureException, IOException, XmlProcessingException;
+    public abstract Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException;
 
-    public abstract Job startReadAllJob(String bucketName) throws SignatureException, IOException, XmlProcessingException;
+    public abstract Job startReadAllJob(final String bucketName, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException;
 }

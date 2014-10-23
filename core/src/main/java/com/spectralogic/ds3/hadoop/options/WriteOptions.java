@@ -15,7 +15,7 @@
 
 package com.spectralogic.ds3.hadoop.options;
 
-public class WriteOptions {
+public class WriteOptions extends AbstractJobOptions {
 
     /**
      * Returns a new Default WriteOptions object with JobOutputDir set to '~/result' and hadoopTmpDir set to '/tmp/hadoop/ds3'
@@ -28,25 +28,6 @@ public class WriteOptions {
         defaultOptions.setHadoopTmpDir("/tmp/hadoop/ds3");
         
         return defaultOptions;
-    }
-
-    private String hadoopTmpDir = null;
-    private String jobOutputDir = null;
-
-    public String getHadoopTmpDir() {
-        return hadoopTmpDir;
-    }
-
-    public void setHadoopTmpDir(final String hadoopTmpDir) {
-        this.hadoopTmpDir = hadoopTmpDir;
-    }
-
-    public String getJobOutputDir() {
-        return jobOutputDir;
-    }
-
-    public void setJobOutputDir(final String jobOutputDir) {
-        this.jobOutputDir = jobOutputDir;
     }
 
 }

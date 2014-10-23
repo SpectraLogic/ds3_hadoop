@@ -17,6 +17,7 @@ package com.spectralogic.ds3.hadoop;
 
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3.hadoop.options.HadoopOptions;
+import com.spectralogic.ds3.hadoop.options.ReadOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3.hadoop.util.ListUtils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -26,6 +27,7 @@ import com.spectralogic.ds3client.commands.GetBucketRequest;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.ListBucketResult;
+import com.spectralogic.ds3client.models.bulk.ChunkClientProcessingOrderGuarantee;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
@@ -65,23 +67,29 @@ class HadoopHelperImpl extends HadoopHelper {
     }
 
     @Override
-    public Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects) throws SignatureException, IOException, XmlProcessingException {
+    public Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final ReadOptions options)throws SignatureException, IOException, XmlProcessingException {
 
-        final MasterObjectList result = this.client.bulkGet(new BulkGetRequest(bucketName, Lists.newArrayList(ds3Objects))).getResult();
+        final MasterObjectList result = this.client.bulkGet(new BulkGetRequest(bucketName,
+                    Lists.newArrayList(ds3Objects))
+                .withChunkOrdering(ChunkClientProcessingOrderGuarantee.NONE))
+                .getResult();
 
-        return new ReadJobImpl(client, hdfs, result);
+        return new ReadJobImpl(client, hdfs, result, hadoopOptions, options);
     }
 
     @Override
-    public Job startReadAllJob(final String bucketName) throws SignatureException, IOException, XmlProcessingException {
+    public Job startReadAllJob(final String bucketName, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException {
         // ------------- Get file list from DS3 -------------
         final ListBucketResult fileList = this.client.getBucket(new GetBucketRequest(bucketName)).getResult();
         final List<Ds3Object> objects = convertToList(fileList);
 
         // prime ds3
-        final MasterObjectList result = this.client.bulkGet(new BulkGetRequest(bucketName, Lists.newArrayList(ListUtils.filterDirectories(objects)))).getResult();
+        final MasterObjectList result = this.client.bulkGet(new BulkGetRequest(bucketName,
+                    Lists.newArrayList(ListUtils.filterDirectories(objects)))
+                .withChunkOrdering(ChunkClientProcessingOrderGuarantee.NONE)).
+                getResult();
 
-        return new ReadJobImpl(client, hdfs, result);
+        return new ReadJobImpl(client, hdfs, result, hadoopOptions, options);
     }
 
     private List<Ds3Object> convertToList(final ListBucketResult bucketList) {

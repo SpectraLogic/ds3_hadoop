@@ -17,6 +17,7 @@ package com.spectralogic.ds3.hadoop.util;
 
 import com.spectralogic.ds3.hadoop.Constants;
 import com.spectralogic.ds3.hadoop.HadoopHelper;
+import com.spectralogic.ds3.hadoop.mappers.FileEntry;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Objects;
@@ -24,7 +25,12 @@ import com.spectralogic.ds3client.networking.ConnectionDetails;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapred.TextOutputFormat;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -42,7 +48,7 @@ public class HdfsUtils {
         /* TODO: We will have to update this to take into account different nodes post 1.0. */
         for(final Objects objects: masterObjectList) {
             for(final BulkObject object: objects.getObjects()) {
-                writer.printf("%s,%d,%d\n", object.getName(), object.getOffset(), object.getLength());
+                writer.printf("%s\n", FileEntry.fromBulkObject(object).toString());
             }
         }
 
@@ -53,7 +59,7 @@ public class HdfsUtils {
         return tempFile;
     }
 
-    public static JobConf createJob(final ConnectionDetails connectionDetails, final String bucketName) {
+    public static JobConf createJob(final ConnectionDetails connectionDetails, final String bucketName, final Class<? extends Mapper> mapperClass) {
         final JobConf conf = new JobConf(HadoopHelper.class);
         conf.setJobName(Constants.JOB_NAME);
 
@@ -64,6 +70,13 @@ public class HdfsUtils {
         conf.set(Constants.SECRETKEY, connectionDetails.getCredentials().getKey());
         conf.set(Constants.ENDPOINT, connectionDetails.getEndpoint());
 
+        conf.setOutputKeyClass(Text.class);
+        conf.setOutputValueClass(LongWritable.class);
+
+        conf.setMapperClass(mapperClass);
+
+        conf.setInputFormat(TextInputFormat.class);
+        conf.setOutputFormat(TextOutputFormat.class);
         return conf;
     }
 

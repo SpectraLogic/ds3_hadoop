@@ -73,10 +73,9 @@ class WriteJobImpl implements Job {
 
         while (chunkAllocator.hasMoreChunks()) {
             final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
-            final JobConf jobConf = configJob(HdfsUtils.createJob(ds3Client.getConnectionDetails(), bucketName));
+            final JobConf jobConf = HdfsUtils.createJob(ds3Client.getConnectionDetails(), bucketName, BulkPut.class);
 
             final File tempFile = HdfsUtils.writeToTemp(newChunks);
-
             final String fileListPath = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());
             hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(fileListPath));
             jobConf.set(Constants.HADOOP_TMP_DIR, options.getHadoopTmpDir());
@@ -86,25 +85,12 @@ class WriteJobImpl implements Job {
 
             System.out.println("----- Starting put job -----");
 
-
             final RunningJob runningJob = jobClient.submitJob(jobConf);
             runningJob.waitForCompletion();
 
             System.out.println("----- Job finished running -----");
         }
     }
-
-    private JobConf configJob(final JobConf jobConf) {
-        jobConf.setOutputKeyClass(Text.class);
-        jobConf.setOutputValueClass(LongWritable.class);
-
-        jobConf.setMapperClass(BulkPut.class);
-
-        jobConf.setInputFormat(TextInputFormat.class);
-        jobConf.setOutputFormat(TextOutputFormat.class);
-        return jobConf;
-    }
-
 
     private class ChunkAllocator {
 
