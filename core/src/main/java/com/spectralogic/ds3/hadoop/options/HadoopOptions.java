@@ -15,22 +15,27 @@
 
 package com.spectralogic.ds3.hadoop.options;
 
+import com.spectralogic.ds3.hadoop.Constants;
 import org.apache.hadoop.conf.Configuration;
 
 import java.net.InetSocketAddress;
 
 public class HadoopOptions {
 
-    static {
-    }
     private Configuration config;
     private InetSocketAddress jobTracker;
 
     public static HadoopOptions getDefaultOptions() {
         final HadoopOptions hadoopOptions = new HadoopOptions();
-        hadoopOptions.setConfig(new Configuration());
+        hadoopOptions.setConfig(getDefaultConfiguration());
         hadoopOptions.setJobTracker(new InetSocketAddress("localhost", 50030));
         return hadoopOptions;
+    }
+
+    public static Configuration getDefaultConfiguration() {
+        final Configuration conf = new Configuration();
+        conf.set(Constants.MAPREDUCE_FRAMEWORK_NAME, "yarn");
+        return conf;
     }
 
     public Configuration getConfig() {

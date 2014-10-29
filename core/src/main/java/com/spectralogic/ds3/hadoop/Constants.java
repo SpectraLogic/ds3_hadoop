@@ -28,4 +28,5 @@ public class Constants {
     public static final String CERTIFICATE_VERIFICATION = "certificateVerification";
     public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
     public static final String PREFIX = "prefix";
+    public static final String MAPREDUCE_FRAMEWORK_NAME = "mapreduce.framework.name";
 }

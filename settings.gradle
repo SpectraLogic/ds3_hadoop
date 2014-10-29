@@ -1,2 +1,3 @@
-include 'cli', 'core'
+include 'cli', 'core', 'samples'
 rootProject.name = 'ds3_hadoop'
+

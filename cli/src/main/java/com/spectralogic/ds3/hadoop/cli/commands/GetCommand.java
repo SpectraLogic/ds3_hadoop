@@ -15,11 +15,7 @@
 
 package com.spectralogic.ds3.hadoop.cli.commands;
 
-import com.spectralogic.ds3.hadoop.mappers.BulkGet;
 import com.spectralogic.ds3.hadoop.cli.Arguments;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.*;
 
 import java.io.IOException;
 
@@ -29,21 +25,10 @@ public class GetCommand extends AbstractCommand {
         super(args);
     }
 
-    /*
-    @Override
-    public void init(final JobConf conf) {
-        conf.setOutputKeyClass(Text.class);
-        conf.setOutputValueClass(LongWritable.class);
-
-        conf.setMapperClass(BulkGet.class);
-
-        conf.setInputFormat(TextInputFormat.class);
-        conf.setOutputFormat(TextOutputFormat.class);
-    }
-    */
-
     @Override
     public Boolean call() throws Exception {
+
+
 
         return true;
     }

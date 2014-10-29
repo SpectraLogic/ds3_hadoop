@@ -118,7 +118,7 @@ class WriteJobImpl implements Job {
             final List<Objects> newChunks = new ArrayList<>();
 
             boolean continueAllocatingChunks = true;
-            while(continueAllocatingChunks){
+            while(continueAllocatingChunks && hasMoreChunks()){
                 final AllocateJobChunkResponse response = allocateChunk(chunks.poll().getChunkId());
                 final AllocateJobChunkResponse.Status status = response.getStatus();
 

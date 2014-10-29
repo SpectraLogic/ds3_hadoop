@@ -30,10 +30,14 @@ subprojects {
         mavenCentral()
     }
 
+    def hadoopVersion = '2.5.0'
+
     dependencies {
         compile 'javax.activation:activation:1.1'
-        compile 'org.apache.hadoop:hadoop-common:2.5.0'
-        compile 'org.apache.hadoop:hadoop-mapreduce-client-core:2.5.0'
+        compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
+        compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"
+        compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
+        runtime "org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoopVersion"
         compile 'com.spectralogic:ds3_java_sdk:0.7.5-SNAPSHOT'
         compile 'com.google.guava:guava:16.0.1'
         testCompile 'junit:junit:4.11'
@@ -60,6 +64,11 @@ project(':cli') {
     }
 }
 
+project(':samples') {
+    dependencies {
+        compile project(':core')
+    }
+}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.1'
