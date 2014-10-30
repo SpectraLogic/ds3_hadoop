@@ -19,7 +19,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
+import java.nio.channels.SeekableByteChannel;
 
 public class SeekableReadHadoopChannel implements SeekableByteChannel {
     private final FSDataInputStream stream;

@@ -32,11 +32,13 @@ import java.security.SignatureException;
 public abstract class HadoopHelper {
 
     public static HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs) {
-        return new HadoopHelperImpl(client, hdfs);
+        return new HadoopHelperStub();
+        //return new HadoopHelperImpl(client, hdfs);
     }
 
     public static HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions) {
-        return new HadoopHelperImpl(client, hdfs, hadoopOptions);
+        return new HadoopHelperStub();
+        //return new HadoopHelperImpl(client, hdfs, hadoopOptions);
     }
 
     public abstract Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final WriteOptions options) throws SignatureException, IOException, XmlProcessingException;
