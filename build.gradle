@@ -15,8 +15,8 @@
 
 
 allprojects {
-    group = 'com.spectralogic'
-    version = '0.7.0'
+    group = 'com.spectralogic.hadoop'
+    version = '0.7.0-STUB'
 }
 
 subprojects {
@@ -44,7 +44,7 @@ subprojects {
     }
 }
 
-project(':cli') {
+project(':ds3-hadoop-cli') {
     task copyToLib(type: Copy) {
         from configurations.runtime
         into "$buildDir/resources/main/lib"
@@ -60,13 +60,13 @@ project(':cli') {
 
     dependencies {
         compile fileTree(dir: 'lib', include: '*.jar')
-        compile project(':core')
+        compile project(':ds3-hadoop-core')
     }
 }
 
-project(':samples') {
+project(':ds3-hadoop-samples') {
     dependencies {
-        compile project(':core')
+        compile project(':ds3-hadoop-core')
     }
 }
 
