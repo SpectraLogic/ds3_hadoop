@@ -20,7 +20,6 @@ import com.spectralogic.ds3.hadoop.mappers.FileEntry;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 
 import java.io.File;
 import java.net.URI;
