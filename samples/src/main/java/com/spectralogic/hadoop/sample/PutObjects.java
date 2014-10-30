@@ -51,14 +51,19 @@ public class PutObjects {
 
         final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
 
-        final List<Ds3Object> objects = new ArrayList<>();
-
-        objects.add(new Ds3Object("/user/hduser/books/beowulf.txt", 301063));
-        objects.add(new Ds3Object("/user/hduser/books/huckfinn.txt", 610157));
-        objects.add(new Ds3Object("/user/hduser/books/taleoftwocities.txt", 792920));
-
+        final List<Ds3Object> objects = getObjectList();
 
         final Job job = helper.startWriteJob("books15", objects, WriteOptions.getDefault());
         job.transfer();
+    }
+
+    private static List<Ds3Object> getObjectList() {
+        final List<Ds3Object> objects = new ArrayList<>();
+
+        objects.add(new Ds3Object("/user/root/books/beowulf.txt", 301063));
+        objects.add(new Ds3Object("/user/root/books/huckfinn.txt", 610157));
+        objects.add(new Ds3Object("/user/root/books/taleoftwocities.txt", 792920));
+
+        return objects;
     }
 }
