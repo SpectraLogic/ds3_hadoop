@@ -15,7 +15,7 @@
 
 
 allprojects {
-    group = 'com.spectralogic.hadoop'
+    group = 'com.spectralogic.ds3-hadoop'
     version = '0.7.0-STUB'
 }
 
@@ -28,6 +28,9 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven {
+            url 'http://spectralogic.github.io/java/repository'
+        }
     }
 
     def hadoopVersion = '2.5.0'
@@ -38,7 +41,7 @@ subprojects {
         compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"
         compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
         runtime "org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoopVersion"
-        compile 'com.spectralogic:ds3_java_sdk:0.7.5-SNAPSHOT'
+        compile 'com.spectralogic.ds3:ds3-sdk:0.7.6-SNAPSHOT'
         compile 'com.google.guava:guava:16.0.1'
         testCompile 'junit:junit:4.11'
     }
