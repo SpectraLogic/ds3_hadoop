@@ -36,25 +36,26 @@ import java.util.List;
 
 public class PutObjects {
     public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException {
-        final Ds3Client client = Ds3ClientBuilder.create("192.168.56.102:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
+        final Ds3Client client = Ds3ClientBuilder.create("192.168.56.103:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
 
         final Configuration conf = new Configuration();
 
-        conf.set("fs.default.name", "hdfs://192.168.56.104:9000");
+        conf.set("fs.default.name", "hdfs://192.168.56.102:9000");
 
-        final FileSystem hdfs = FileSystem.get(conf);
+        try (final FileSystem hdfs = FileSystem.get(conf)) {
 
-        System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
+            System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
 
-        final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
-        hadoopOptions.setJobTracker(new InetSocketAddress("192.168.56.104", 50030));
+            final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
+            hadoopOptions.setJobTracker(new InetSocketAddress("192.168.56.102", 50030));
 
-        final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
+            final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
 
-        final List<Ds3Object> objects = getObjectList();
+            final List<Ds3Object> objects = getObjectList();
 
-        final Job job = helper.startWriteJob("books15", objects, WriteOptions.getDefault());
-        job.transfer();
+            final Job job = helper.startWriteJob("books15", objects, WriteOptions.getDefault());
+            job.transfer();
+        }
     }
 
     private static List<Ds3Object> getObjectList() {
