@@ -58,3 +58,8 @@ Releases
 ========
 
 Currently the only release available is the STUB release.  This release contains the full API, but with a stubbed out implementation.  This allows for a user to begin writing an application with the API, but without the need for a fully functional Hadoop Cluster.
+
+Samples
+=======
+
+The repository includes a module that contains sample programs that use the ds3-hadoop API.  They can be referenced [here](https://github.com/SpectraLogic/ds3_hadoop/tree/master/ds3-hadoop-samples/src/main/java/com/spectralogic/hadoop/sample)
