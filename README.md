@@ -1,8 +1,8 @@
-# DS3 Hadoop File Migrator
+# DS3 Hadoop SDK
 
 ---
 
-A Hadoop Map/Reduce application that migrates data between a Hadoop Cluster and a DS3 appliance.
+A Hadoop Map/Reduce library that migrates data between a Hadoop Cluster and a DS3 appliance.
 
 ## Installing
 
