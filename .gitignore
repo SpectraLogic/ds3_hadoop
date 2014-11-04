@@ -6,6 +6,5 @@ build/
 classes/
 atlassian-ide-plugin.xml
 *.iml
-*.txt
 *.class
 *.swp
