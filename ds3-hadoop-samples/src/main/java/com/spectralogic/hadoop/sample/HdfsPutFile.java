@@ -38,7 +38,7 @@ public class HdfsPutFile {
         usgi.doAs(new PrivilegedExceptionAction<Object>() {
             @Override
             public Object run() throws Exception {
-                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://192.168.56.102:9000");
+                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://172.17.0.2:9000");
                 conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
                 try (final FileSystem fs = FileSystem.get(conf)) {
