@@ -15,7 +15,7 @@
 
 package com.spectralogic.ds3.hadoop.options;
 
-import com.spectralogic.ds3.hadoop.Constants;
+import com.spectralogic.ds3.hadoop.HadoopConstants;
 import org.apache.hadoop.conf.Configuration;
 
 import java.net.InetSocketAddress;
@@ -34,7 +34,7 @@ public class HadoopOptions {
 
     public static Configuration getDefaultConfiguration() {
         final Configuration conf = new Configuration();
-        conf.set(Constants.MAPREDUCE_FRAMEWORK_NAME, "yarn");
+        conf.set(HadoopConstants.MAPREDUCE_FRAMEWORK_NAME, "yarn");
         return conf;
     }
 

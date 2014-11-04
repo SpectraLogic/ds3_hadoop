@@ -76,7 +76,7 @@ class WriteJobImpl implements Job {
             final File tempFile = HdfsUtils.writeToTemp(newChunks);
             final String fileListPath = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());
             hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(fileListPath));
-            jobConf.set(Constants.HADOOP_TMP_DIR, options.getHadoopTmpDir());
+            jobConf.set(HadoopConstants.HADOOP_TMP_DIR, options.getHadoopTmpDir());
 
             FileInputFormat.setInputPaths(jobConf, fileListPath);
             FileOutputFormat.setOutputPath(jobConf, new Path(options.getJobOutputDir()));

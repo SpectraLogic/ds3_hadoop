@@ -79,7 +79,7 @@ class ReadJobImpl implements Job {
             final File tempFile = HdfsUtils.writeToTemp(chunks);
             final String fileListPath = PathUtils.join(readOptions.getHadoopTmpDir(), tempFile.getName());
             hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(fileListPath));
-            jobConf.set(Constants.HADOOP_TMP_DIR, readOptions.getHadoopTmpDir());
+            jobConf.set(HadoopConstants.HADOOP_TMP_DIR, readOptions.getHadoopTmpDir());
 
             FileInputFormat.setInputPaths(jobConf, fileListPath);
             FileOutputFormat.setOutputPath(jobConf, new Path(readOptions.getJobOutputDir()));

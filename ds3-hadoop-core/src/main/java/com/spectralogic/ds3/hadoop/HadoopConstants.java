@@ -15,16 +15,9 @@
 
 package com.spectralogic.ds3.hadoop;
 
-public class Constants {
-
-    public static final String JOB_NAME = "DS3_Archive";
-
-    public static final String JOB_ID = "jobId";
-    public static final String HTTPS = "https";
-    public static final String BUCKET = "bucket";
-    public static final String ACCESSKEY = "accessKeyId";
-    public static final String SECRETKEY = "secretKey";
-    public static final String ENDPOINT = "endpoint";
-    public static final String CERTIFICATE_VERIFICATION = "certificateVerification";
-    public static final String PREFIX = "prefix";
+public class HadoopConstants {
+    public static final String FS_DEFAULT_NAME = "fs.default.name";
+    public static final String HADOOP_JOB_UGI = "hadoop.job.ugi";
+    public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
+    public static final String MAPREDUCE_FRAMEWORK_NAME = "mapreduce.framework.name";
 }

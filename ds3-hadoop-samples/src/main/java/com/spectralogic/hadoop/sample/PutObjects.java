@@ -15,56 +15,125 @@
 
 package com.spectralogic.hadoop.sample;
 
+import com.spectralogic.ds3.hadoop.HadoopConstants;
 import com.spectralogic.ds3.hadoop.HadoopHelper;
 import com.spectralogic.ds3.hadoop.Job;
 import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.commands.PutObjectRequest;
 import com.spectralogic.ds3client.models.Credentials;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URISyntaxException;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PutObjects {
-    public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException {
+
+    public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException, InterruptedException {
         final Ds3Client client = Ds3ClientBuilder.create("192.168.56.103:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
 
         final Configuration conf = new Configuration();
+        final UserGroupInformation usgi = UserGroupInformation.createRemoteUser("root");
 
-        conf.set("fs.default.name", "hdfs://192.168.56.102:9000");
+        usgi.doAs(new PrivilegedExceptionAction<Object>() {
+            @Override
+            public Object run() throws Exception {
+                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://192.168.56.102:9000");
+                conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
-        try (final FileSystem hdfs = FileSystem.get(conf)) {
+                try (final FileSystem hdfs = FileSystem.get(conf)) {
 
-            System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
+                    System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
 
-            final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
-            hadoopOptions.setJobTracker(new InetSocketAddress("192.168.56.102", 50030));
+                    final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
+                    hadoopOptions.setJobTracker(new InetSocketAddress("192.168.56.102", 50030));
 
-            final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
+                    final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
 
-            final List<Ds3Object> objects = getObjectList();
+                    final List<Ds3Object> objects = populateTestData(hdfs);
 
-            final Job job = helper.startWriteJob("books15", objects, WriteOptions.getDefault());
-            job.transfer();
-        }
+                    final Job job = helper.startWriteJob("books23", objects, WriteOptions.getDefault());
+                    job.transfer();
+                }
+                return null;
+            }
+        });
     }
 
-    private static List<Ds3Object> getObjectList() {
+    private static List<Ds3Object> populateTestData(final FileSystem hdfs) throws IOException {
+
+        final String[] resources = new String[]{"books/beowulf.txt", "books/huckfinn.txt", "books/taleoftwocities.txt"};
         final List<Ds3Object> objects = new ArrayList<>();
 
-        objects.add(new Ds3Object("/user/root/books/beowulf.txt", 301063));
-        objects.add(new Ds3Object("/user/root/books/huckfinn.txt", 610157));
-        objects.add(new Ds3Object("/user/root/books/taleoftwocities.txt", 792920));
+        for (final String resourceName : resources) {
+
+            final Path path = new Path("/user/root", resourceName);
+
+            try (final CountingInputStream inputStream = new CountingInputStream(PutObjects.class.getClassLoader().getResourceAsStream(resourceName));
+            final FSDataOutputStream outputStream = hdfs.create(path, true)) {
+
+                IOUtils.copy(inputStream, outputStream);
+                objects.add(new Ds3Object(path.toString(), inputStream.byteCount));
+            }
+        }
 
         return objects;
+    }
+
+    private static class CountingInputStream extends FilterInputStream {
+
+        private long byteCount = 0;
+        private final InputStream in;
+
+        public CountingInputStream(final InputStream in) {
+            super(in);
+
+            if (in == null) {
+                throw new NullPointerException("'in' cannot be null");
+            }
+
+            this.in = in;
+        }
+
+        @Override
+        public int read() throws IOException {
+            byteCount++;
+            return in.read();
+        }
+
+        @Override
+        public int read(final byte[] buf) throws IOException {
+            final int bytesRead = in.read(buf);
+            byteCount += bytesRead;
+            return bytesRead;
+        }
+
+        @Override
+        public int read(final byte[] buf, final int offset, final int length) throws IOException {
+            final int bytesRead = in.read(buf, offset, length);
+            byteCount += bytesRead;
+            return bytesRead;
+        }
+
+        public long getByteCount() {
+            return byteCount;
+        }
     }
 }
