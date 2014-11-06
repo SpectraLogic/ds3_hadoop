@@ -73,18 +73,28 @@ class WriteJobImpl implements Job {
             final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
             final JobConf jobConf = HdfsUtils.createJob(ds3Client.getConnectionDetails(), bucketName, BulkPut.class);
 
+            System.out.println("Setting jobTracker to: " + hadoopOptions.getJobTracker().toString());
+
+            jobConf.set("mapred.job.tracker", hadoopOptions.getJobTracker().toString());
+
             final File tempFile = HdfsUtils.writeToTemp(newChunks);
-            final String fileListPath = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());
-            hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(fileListPath));
+            final String fileListName = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());
+            final Path fileListPath = hdfs.makeQualified(new Path(fileListName));
+
+            hdfs.copyFromLocalFile(new Path(tempFile.toString()), fileListPath);
             jobConf.set(HadoopConstants.HADOOP_TMP_DIR, options.getHadoopTmpDir());
 
+            System.out.println("Tmp File: " + fileListName);
+
             FileInputFormat.setInputPaths(jobConf, fileListPath);
-            FileOutputFormat.setOutputPath(jobConf, new Path(options.getJobOutputDir()));
+            FileOutputFormat.setOutputPath(jobConf, hdfs.makeQualified(new Path(options.getJobOutputDir())));
 
             System.out.println("----- Starting put job -----");
 
             final RunningJob runningJob = jobClient.submitJob(jobConf);
             runningJob.waitForCompletion();
+
+            System.out.println("Error result: " + runningJob.getFailureInfo());
 
             System.out.println("----- Job finished running -----");
         }

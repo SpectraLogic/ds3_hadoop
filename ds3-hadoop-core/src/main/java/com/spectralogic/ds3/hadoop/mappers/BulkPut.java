@@ -73,7 +73,7 @@ public class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text,
         try (final FSDataInputStream stream = hadoopFs.open(filePath)) {
             client.putObject(new PutObjectRequest(bucketName, entry.getFileName(), jobId, entry.getLength(), entry.getOffset(),
                     SeekableReadHadoopChannel.wrap(stream, entry.getLength(), entry.getOffset())));
-        } catch (SignatureException e) {
+        } catch (final SignatureException e) {
             System.out.println("Failed to compute DS3 signature");
             throw new IOException(e);
         }

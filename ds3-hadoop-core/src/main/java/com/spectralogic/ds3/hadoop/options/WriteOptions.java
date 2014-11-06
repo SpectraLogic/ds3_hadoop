@@ -24,7 +24,7 @@ public class WriteOptions extends AbstractJobOptions {
 
         final WriteOptions defaultOptions = new WriteOptions();
         
-        defaultOptions.setJobOutputDir("~/result");
+        defaultOptions.setJobOutputDir("result");
         defaultOptions.setHadoopTmpDir("/tmp/hadoop/ds3");
         
         return defaultOptions;

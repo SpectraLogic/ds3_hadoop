@@ -20,6 +20,13 @@ allprojects {
 }
 
 subprojects {
+    buildscript {
+      repositories { jcenter() }
+      dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.1.1'
+      }
+    }
+
     apply plugin: "java"
     apply plugin: "maven"
 
@@ -33,16 +40,11 @@ subprojects {
         }
     }
 
-    def hadoopVersion = '2.5.0'
 
     dependencies {
-        compile 'javax.activation:activation:1.1'
-        compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
-        compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"
-        compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
-        runtime "org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoopVersion"
-        compile 'com.spectralogic.ds3:ds3-sdk:0.7.6-SNAPSHOT'
-        compile 'com.google.guava:guava:16.0.1'
+        compile ('com.spectralogic.ds3:ds3-sdk:0.7.6-SNAPSHOT:all') {
+            transitive = false
+        }
         testCompile 'junit:junit:4.11'
     }
 }
@@ -69,7 +71,7 @@ project(':ds3-hadoop-cli') {
 
 project(':ds3-hadoop-samples') {
     dependencies {
-        compile project(':ds3-hadoop-core')
+        compile project(path: ':ds3-hadoop-core', configuration: 'fat')
     }
 }
 

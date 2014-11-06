@@ -55,7 +55,7 @@ public class PutObjects {
         usgi.doAs(new PrivilegedExceptionAction<Object>() {
             @Override
             public Object run() throws Exception {
-                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://192.168.56.102:9000");
+                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://172.17.0.3:9000");
                 conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
                 try (final FileSystem hdfs = FileSystem.get(conf)) {
@@ -63,13 +63,13 @@ public class PutObjects {
                     System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
 
                     final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
-                    hadoopOptions.setJobTracker(new InetSocketAddress("192.168.56.102", 50030));
+                    hadoopOptions.setJobTracker(new InetSocketAddress("172.17.0.3", 8033));
 
                     final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
 
                     final List<Ds3Object> objects = populateTestData(hdfs);
 
-                    final Job job = helper.startWriteJob("books23", objects, WriteOptions.getDefault());
+                    final Job job = helper.startWriteJob("books39", objects, WriteOptions.getDefault());
                     job.transfer();
                 }
                 return null;
@@ -79,11 +79,12 @@ public class PutObjects {
 
     private static List<Ds3Object> populateTestData(final FileSystem hdfs) throws IOException {
 
-        final String[] resources = new String[]{"books/beowulf.txt", "books/huckfinn.txt", "books/taleoftwocities.txt"};
+        final String[] resources = new String[]{"books/beowulf.txt", "books/sherlock_holmes.txt", "books/tale_of_two_cities.txt", "books/ulysses.txt"};
         final List<Ds3Object> objects = new ArrayList<>();
 
         for (final String resourceName : resources) {
 
+            System.out.println("Processing: " + resourceName);
             final Path path = new Path("/user/root", resourceName);
 
             try (final CountingInputStream inputStream = new CountingInputStream(PutObjects.class.getClassLoader().getResourceAsStream(resourceName));
