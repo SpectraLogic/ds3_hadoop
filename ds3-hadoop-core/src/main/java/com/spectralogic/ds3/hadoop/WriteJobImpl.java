@@ -71,11 +71,11 @@ class WriteJobImpl implements Job {
 
         while (chunkAllocator.hasMoreChunks()) {
             final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
-            final JobConf jobConf = HdfsUtils.createJob(ds3Client.getConnectionDetails(), bucketName, BulkPut.class);
+            final JobConf jobConf = HdfsUtils.createJob(ds3Client.getConnectionDetails(), bucketName, this.jobId, BulkPut.class);
 
             System.out.println("Setting jobTracker to: " + hadoopOptions.getJobTracker().toString());
 
-            jobConf.set("mapred.job.tracker", hadoopOptions.getJobTracker().toString());
+            jobConf.set("mapreduce.jobtracker.address", hadoopOptions.getJobTracker().toString());
 
             final File tempFile = HdfsUtils.writeToTemp(newChunks);
             final String fileListName = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());

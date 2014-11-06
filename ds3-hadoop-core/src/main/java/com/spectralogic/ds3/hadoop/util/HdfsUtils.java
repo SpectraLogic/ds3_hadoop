@@ -16,6 +16,7 @@
 package com.spectralogic.ds3.hadoop.util;
 
 import com.spectralogic.ds3.hadoop.Constants;
+import com.spectralogic.ds3.hadoop.HadoopConstants;
 import com.spectralogic.ds3.hadoop.HadoopHelper;
 import com.spectralogic.ds3.hadoop.mappers.FileEntry;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
@@ -39,6 +40,7 @@ import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class HdfsUtils {
     public static File writeToTemp(final List<Objects> masterObjectList) throws IOException {
@@ -59,7 +61,7 @@ public class HdfsUtils {
         return tempFile;
     }
 
-    public static JobConf createJob(final ConnectionDetails connectionDetails, final String bucketName, final Class<? extends Mapper> mapperClass) {
+    public static JobConf createJob(final ConnectionDetails connectionDetails, final String bucketName, final UUID jobId, final Class<? extends Mapper> mapperClass) {
         final JobConf conf = new JobConf(HadoopHelper.class);
         conf.setJobName(Constants.JOB_NAME);
 
@@ -69,6 +71,8 @@ public class HdfsUtils {
         conf.set(Constants.ACCESSKEY, connectionDetails.getCredentials().getClientId());
         conf.set(Constants.SECRETKEY, connectionDetails.getCredentials().getKey());
         conf.set(Constants.ENDPOINT, connectionDetails.getEndpoint());
+        conf.set(Constants.JOB_ID, jobId.toString());        
+        conf.set(HadoopConstants.MAPREDUCE_FRAMEWORK_NAME, "yarn");
 
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(LongWritable.class);

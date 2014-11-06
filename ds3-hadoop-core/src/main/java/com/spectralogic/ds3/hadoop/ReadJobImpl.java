@@ -74,7 +74,7 @@ class ReadJobImpl implements Job {
         while(chunkGenerator.hasNext()) {
             final List<Objects> chunks = chunkGenerator.getAvailableChunks();
             partTracker.addObjects(chunks);
-            final JobConf jobConf = HdfsUtils.createJob(client.getConnectionDetails(), bucketName, BulkGet.class);
+            final JobConf jobConf = HdfsUtils.createJob(client.getConnectionDetails(), bucketName, this.jobId, BulkGet.class);
 
             final File tempFile = HdfsUtils.writeToTemp(chunks);
             final String fileListPath = PathUtils.join(readOptions.getHadoopTmpDir(), tempFile.getName());

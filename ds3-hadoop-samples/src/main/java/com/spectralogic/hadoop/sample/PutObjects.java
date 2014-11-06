@@ -44,9 +44,20 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.RootLogger;
+import org.apache.log4j.Level;
+import org.apache.log4j.BasicConfigurator;
+
 public class PutObjects {
 
     public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException, InterruptedException {
+
+        BasicConfigurator.configure();
+
+        final RootLogger logger = (RootLogger) Logger.getRootLogger();
+        logger.setLevel(Level.DEBUG);
+
         final Ds3Client client = Ds3ClientBuilder.create("192.168.56.103:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
 
         final Configuration conf = new Configuration();
@@ -55,7 +66,7 @@ public class PutObjects {
         usgi.doAs(new PrivilegedExceptionAction<Object>() {
             @Override
             public Object run() throws Exception {
-                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://172.17.0.3:9000");
+                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://172.17.0.2:9000");
                 conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
                 try (final FileSystem hdfs = FileSystem.get(conf)) {
@@ -63,13 +74,13 @@ public class PutObjects {
                     System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
 
                     final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
-                    hadoopOptions.setJobTracker(new InetSocketAddress("172.17.0.3", 8033));
+                    hadoopOptions.setJobTracker(new InetSocketAddress("172.17.0.2", 8033));
 
                     final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
 
                     final List<Ds3Object> objects = populateTestData(hdfs);
 
-                    final Job job = helper.startWriteJob("books39", objects, WriteOptions.getDefault());
+                    final Job job = helper.startWriteJob("books45", objects, WriteOptions.getDefault());
                     job.transfer();
                 }
                 return null;
