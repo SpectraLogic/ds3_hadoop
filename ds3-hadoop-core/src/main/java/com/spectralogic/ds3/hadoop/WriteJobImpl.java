@@ -26,8 +26,10 @@ import com.spectralogic.ds3client.commands.AllocateJobChunkRequest;
 import com.spectralogic.ds3client.commands.AllocateJobChunkResponse;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
 import com.spectralogic.ds3client.models.bulk.Objects;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapred.*;
 
 import java.io.File;
@@ -67,7 +69,12 @@ class WriteJobImpl implements Job {
     @Override
     public void transfer() throws IOException, SignatureException {
         final ChunkAllocator chunkAllocator = new ChunkAllocator(this.masterObjectList.getObjects());
-        final JobClient jobClient = new JobClient(hadoopOptions.getJobTracker(), hadoopOptions.getConfig());
+        final Configuration conf = this.hdfs.getConf();
+        final Configuration clientConf = new Configuration(conf);
+        clientConf.addResource(this.hadoopOptions.getConfig()); 
+        final JobClient jobClient = new JobClient(this.hadoopOptions.getJobTracker(), clientConf); 
+
+        //final Path fatJar = HdfsUtils.setupJobJarFile(this.hdfs, this.options.getHadoopTmpDir(), BulkPut.class); 
 
         while (chunkAllocator.hasMoreChunks()) {
             final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
@@ -76,6 +83,10 @@ class WriteJobImpl implements Job {
             System.out.println("Setting jobTracker to: " + hadoopOptions.getJobTracker().toString());
 
             jobConf.set("mapreduce.jobtracker.address", hadoopOptions.getJobTracker().toString());
+
+            //System.out.println("Remote Path: " + fatJar.toString());
+            //DistributedCache.addFileToClassPath(fatJar, jobConf, hdfs);
+            jobConf.setJarByClass(BulkPut.class);
 
             final File tempFile = HdfsUtils.writeToTemp(newChunks);
             final String fileListName = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());

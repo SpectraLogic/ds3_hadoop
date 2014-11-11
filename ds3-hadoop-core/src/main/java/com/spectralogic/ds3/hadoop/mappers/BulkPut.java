@@ -65,17 +65,32 @@ public class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text,
 
         final FileEntry entry = FileEntry.fromString(value.toString());
 
-        final String rootPathName = PathUtils.getWorkingDirPath(hadoopFs);
-        final String finalPath = PathUtils.join(rootPathName, entry.getFileName());
-        final Path filePath = new Path(finalPath);
-        System.out.println("Processing file: " + finalPath);
+        final Path rootPathName = new Path(PathUtils.getWorkingDirPath(hadoopFs));
+
+        final Path passedInFilePath = new Path(entry.getFileName());
+
+        final Path filePath;
+        if (passedInFilePath.isUriPathAbsolute()) {
+            filePath = passedInFilePath;
+        } else {
+            filePath = new Path(rootPathName, passedInFilePath);
+        }
+
+        System.out.println("Processing file: " + filePath.toString());
 
         try (final FSDataInputStream stream = hadoopFs.open(filePath)) {
+            System.out.println("Starting put operation...");
             client.putObject(new PutObjectRequest(bucketName, entry.getFileName(), jobId, entry.getLength(), entry.getOffset(),
                     SeekableReadHadoopChannel.wrap(stream, entry.getLength(), entry.getOffset())));
+            System.out.println("Finished putting object");
         } catch (final SignatureException e) {
             System.out.println("Failed to compute DS3 signature");
             throw new IOException(e);
+        } catch (final Exception e) {
+            System.out.println("Exception type: " + e.getClass().toString());
+            System.out.println("Encountered an error when putting an object: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 }

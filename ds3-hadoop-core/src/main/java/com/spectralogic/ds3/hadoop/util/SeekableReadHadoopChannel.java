@@ -41,6 +41,9 @@ public class SeekableReadHadoopChannel implements SeekableByteChannel {
     @Override
     public int read(final ByteBuffer dst) throws IOException {
         final int bytesRead = stream.read(buffer);
+        if (bytesRead == -1) {
+            return bytesRead;
+        }
         dst.put(buffer, 0, bytesRead);
         return bytesRead;
     }

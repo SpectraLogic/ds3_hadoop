@@ -32,6 +32,10 @@ subprojects {
 
     sourceCompatibility = JavaVersion.VERSION_1_7
 
+    compileJava {
+        options.compilerArgs << '-Xlint:deprecation'
+    }
+
     repositories {
         mavenLocal()
         mavenCentral()

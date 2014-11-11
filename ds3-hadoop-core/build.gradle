@@ -3,14 +3,15 @@ apply plugin: 'com.github.johnrengelman.shadow'
 def hadoopVersion = '2.5.0'
 
 dependencies {
-    compile 'javax.activation:activation:1.1'
     compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
 }
 
 shadowJar {
-  relocate 'com.google', 'ds3hadoopfat.google'
+  dependencies {
+    include(dependency('com.spectralogic.ds3:ds3-sdk:0.7.6-SNAPSHOT:all'))
+  }
 }
 
 configurations {

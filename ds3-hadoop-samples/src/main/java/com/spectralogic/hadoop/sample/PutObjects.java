@@ -49,6 +49,8 @@ import org.apache.log4j.spi.RootLogger;
 import org.apache.log4j.Level;
 import org.apache.log4j.BasicConfigurator;
 
+import com.spectralogic.ds3.hadoop.util.HdfsUtils;
+
 public class PutObjects {
 
     public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException, InterruptedException {
@@ -66,21 +68,27 @@ public class PutObjects {
         usgi.doAs(new PrivilegedExceptionAction<Object>() {
             @Override
             public Object run() throws Exception {
-                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://172.17.0.2:9000");
+                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://172.17.0.3:9000");
                 conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
                 try (final FileSystem hdfs = FileSystem.get(conf)) {
 
+                    final Path resultDir = new Path("result");
+                    if(hdfs.exists(resultDir)) {
+                        System.out.println("Cleaning up the result directory.");
+                        hdfs.delete(resultDir, true);
+                    }
+
                     System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
 
                     final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
-                    hadoopOptions.setJobTracker(new InetSocketAddress("172.17.0.2", 8033));
+                    hadoopOptions.setJobTracker(new InetSocketAddress("172.17.0.3", 8033));
 
                     final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
 
                     final List<Ds3Object> objects = populateTestData(hdfs);
 
-                    final Job job = helper.startWriteJob("books45", objects, WriteOptions.getDefault());
+                    final Job job = helper.startWriteJob("books66", objects, WriteOptions.getDefault());
                     job.transfer();
                 }
                 return null;
@@ -102,7 +110,7 @@ public class PutObjects {
             final FSDataOutputStream outputStream = hdfs.create(path, true)) {
 
                 IOUtils.copy(inputStream, outputStream);
-                objects.add(new Ds3Object(path.toString(), inputStream.byteCount));
+                objects.add(new Ds3Object(resourceName, inputStream.byteCount));
             }
         }
 
