@@ -17,9 +17,8 @@ package com.spectralogic.hadoop.sample;
 
 import com.spectralogic.ds3.hadoop.HadoopConstants;
 import com.spectralogic.ds3.hadoop.HadoopHelper;
-import com.spectralogic.ds3.hadoop.Job;
 import com.spectralogic.ds3.hadoop.options.HadoopOptions;
-import com.spectralogic.ds3.hadoop.options.WriteOptions;
+import com.spectralogic.ds3.hadoop.options.ReadOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
@@ -29,28 +28,28 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.RootLogger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URISyntaxException;
 import java.security.PrivilegedExceptionAction;
 import java.security.SignatureException;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.RootLogger;
-import org.apache.log4j.Level;
-import org.apache.log4j.BasicConfigurator;
+public class GetObjects {
 
-public class PutObjects {
-
-    public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException, InterruptedException {
+    public static void main(final String[] args) throws IOException, InterruptedException {
         BasicConfigurator.configure();
 
         final RootLogger logger = (RootLogger) Logger.getRootLogger();
         logger.setLevel(Level.DEBUG);
 
         final Ds3Client client = Ds3ClientBuilder.create("192.168.56.103:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
+
+        final String bucketName = "readBooks01";
 
         final Configuration conf = new Configuration();
         final UserGroupInformation usgi = UserGroupInformation.createRemoteUser("root");
@@ -75,17 +74,17 @@ public class PutObjects {
                     hadoopOptions.setJobTracker(new InetSocketAddress("172.17.0.3", 8033));
 
                     final List<Ds3Object> objects = FileUtils.populateHadoop(hdfs);
-                    transferToBlackPearl(client, hdfs, hadoopOptions, objects);
+                    FileUtils.poplulateDs3(client, bucketName);
+
+                    transferFromBlackPearl(client, hdfs, hadoopOptions, bucketName);
+                    return null;
                 }
-                return null;
             }
         });
     }
 
-    public static void transferToBlackPearl(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions, final List<Ds3Object> objects) throws XmlProcessingException, SignatureException, IOException {
+    public static void transferFromBlackPearl(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions, final String bucketName) throws XmlProcessingException, SignatureException, IOException {
         final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
-
-        final Job job = helper.startWriteJob("books66", objects, WriteOptions.getDefault());
-        job.transfer();
+        helper.startReadAllJob(bucketName, ReadOptions.getDefault());
     }
 }
