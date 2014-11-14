@@ -23,6 +23,7 @@ import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Objects;
 import com.spectralogic.ds3client.networking.ConnectionDetails;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -62,8 +63,8 @@ public class HdfsUtils {
         return tempFile;
     }
 
-    public static JobConf createJob(final ConnectionDetails connectionDetails, final String bucketName, final UUID jobId, final Class<? extends Mapper> mapperClass) {
-        final JobConf conf = new JobConf(Ds3HadoopHelper.class);
+    public static JobConf createJob(final Configuration baseConfig, final ConnectionDetails connectionDetails, final String bucketName, final UUID jobId, final Class<? extends Mapper> mapperClass) {
+        final JobConf conf = new JobConf(baseConfig, Ds3HadoopHelper.class);
         conf.setJobName(Constants.JOB_NAME);
 
         conf.set(Constants.HTTPS, String.valueOf(connectionDetails.isHttps()));

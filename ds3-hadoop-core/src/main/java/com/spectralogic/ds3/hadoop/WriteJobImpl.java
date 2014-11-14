@@ -71,7 +71,7 @@ class WriteJobImpl implements Job {
 
         while (chunkAllocator.hasMoreChunks()) {
             final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
-            final JobConf jobConf = HdfsUtils.createJob(ds3Client.getConnectionDetails(), bucketName, this.jobId, BulkPut.class);
+            final JobConf jobConf = HdfsUtils.createJob(conf, ds3Client.getConnectionDetails(), bucketName, this.jobId, BulkPut.class);
 
             jobConf.setJarByClass(BulkPut.class);
 
