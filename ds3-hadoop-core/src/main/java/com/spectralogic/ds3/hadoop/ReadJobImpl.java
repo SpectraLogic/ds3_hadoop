@@ -16,7 +16,6 @@
 package com.spectralogic.ds3.hadoop;
 
 import com.spectralogic.ds3.hadoop.mappers.BulkGet;
-import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.options.ReadOptions;
 import com.spectralogic.ds3.hadoop.util.HdfsUtils;
 import com.spectralogic.ds3.hadoop.util.PathUtils;
@@ -26,6 +25,7 @@ import com.spectralogic.ds3client.commands.GetAvailableJobChunksResponse;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
 import com.spectralogic.ds3client.models.bulk.Objects;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.*;
@@ -43,16 +43,16 @@ class ReadJobImpl implements Job {
     private final MasterObjectList masterObjectList;
     private final FileSystem hdfs;
     private final ReadOptions readOptions;
-    private final HadoopOptions hadoopOptions;
+    private final Configuration conf;
 
-    ReadJobImpl(final Ds3Client client, final FileSystem hdfs, final MasterObjectList result, final HadoopOptions hadoopOptions, final ReadOptions readOptions) {
+    ReadJobImpl(final Ds3Client client, final FileSystem hdfs, final MasterObjectList result, final Configuration configuration, final ReadOptions readOptions) {
         this.client = client;
         this.hdfs = hdfs;
         this.masterObjectList = result;
         this.jobId = masterObjectList.getJobId();
         this.bucketName = masterObjectList.getBucketName();
         this.readOptions = readOptions;
-        this.hadoopOptions = hadoopOptions;
+        this.conf = configuration;
     }
 
     @Override
@@ -69,7 +69,8 @@ class ReadJobImpl implements Job {
     public void transfer() throws IOException, SignatureException {
         final ChunkGenerator chunkGenerator = new ChunkGenerator(client, jobId, masterObjectList.getObjects());
         final ObjectPartTracker partTracker = new ObjectPartTracker();
-        final JobClient jobClient = new JobClient(hadoopOptions.getJobTracker(), hadoopOptions.getConfig());
+
+        final JobClient jobClient = new JobClient(conf);
 
         while(chunkGenerator.hasNext()) {
             final List<Objects> chunks = chunkGenerator.getAvailableChunks();

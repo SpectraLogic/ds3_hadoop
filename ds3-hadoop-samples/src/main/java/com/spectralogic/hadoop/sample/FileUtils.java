@@ -86,6 +86,13 @@ public class FileUtils {
         return objects;
     }
 
+    public static void cleanUpDirectory(final FileSystem hdfs, final Path path) throws IOException {
+        if (hdfs.exists(path)) {
+            System.out.println("Cleaning up the result directory.");
+            hdfs.delete(path, true);
+        }
+    }
+
     private static class CountingInputStream extends FilterInputStream {
 
         private long byteCount = 0;

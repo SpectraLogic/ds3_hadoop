@@ -16,8 +16,8 @@
 package com.spectralogic.ds3.hadoop.util;
 
 import com.spectralogic.ds3.hadoop.Constants;
+import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.HadoopConstants;
-import com.spectralogic.ds3.hadoop.HadoopHelper;
 import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.mappers.FileEntry;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
@@ -67,7 +67,7 @@ public class HdfsUtils {
     }
 
     public static JobConf createJob(final ConnectionDetails connectionDetails, final String bucketName, final UUID jobId, final Class<? extends Mapper> mapperClass) {
-        final JobConf conf = new JobConf(HadoopHelper.class);
+        final JobConf conf = new JobConf(Ds3HadoopHelper.class);
         conf.setJobName(Constants.JOB_NAME);
 
         conf.set(Constants.HTTPS, String.valueOf(connectionDetails.isHttps()));

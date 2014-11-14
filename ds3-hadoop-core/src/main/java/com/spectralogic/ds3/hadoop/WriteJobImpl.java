@@ -17,7 +17,6 @@ package com.spectralogic.ds3.hadoop;
 
 
 import com.spectralogic.ds3.hadoop.mappers.BulkPut;
-import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3.hadoop.util.HdfsUtils;
 import com.spectralogic.ds3.hadoop.util.PathUtils;
@@ -29,7 +28,6 @@ import com.spectralogic.ds3client.models.bulk.Objects;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapred.*;
 
 import java.io.File;
@@ -44,16 +42,16 @@ class WriteJobImpl implements Job {
     private final UUID jobId;
     private final String bucketName;
     private final WriteOptions options;
-    private final HadoopOptions hadoopOptions;
+    private final Configuration conf;
 
-    public WriteJobImpl(final Ds3Client ds3Client1, final FileSystem hdfs, final MasterObjectList masterObjectList, final HadoopOptions hadoopOptions, final WriteOptions options) {
+    public WriteJobImpl(final Ds3Client ds3Client1, final FileSystem hdfs, final MasterObjectList masterObjectList, final Configuration configuration, final WriteOptions options) {
         this.ds3Client = ds3Client1;
         this.hdfs = hdfs;
         this.masterObjectList = masterObjectList;
         this.jobId = masterObjectList.getJobId();
         this.bucketName = masterObjectList.getBucketName();
-        this.hadoopOptions = hadoopOptions;
         this.options = options;
+        this.conf = configuration;
     }
 
     @Override
@@ -69,23 +67,12 @@ class WriteJobImpl implements Job {
     @Override
     public void transfer() throws IOException, SignatureException {
         final ChunkAllocator chunkAllocator = new ChunkAllocator(this.masterObjectList.getObjects());
-        final Configuration conf = this.hdfs.getConf();
-        final Configuration clientConf = new Configuration(conf);
-        clientConf.addResource(this.hadoopOptions.getConfig()); 
-        final JobClient jobClient = new JobClient(this.hadoopOptions.getJobTracker(), clientConf); 
-
-        //final Path fatJar = HdfsUtils.setupJobJarFile(this.hdfs, this.options.getHadoopTmpDir(), BulkPut.class); 
+        final JobClient jobClient = new JobClient(conf);
 
         while (chunkAllocator.hasMoreChunks()) {
             final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
             final JobConf jobConf = HdfsUtils.createJob(ds3Client.getConnectionDetails(), bucketName, this.jobId, BulkPut.class);
 
-            System.out.println("Setting jobTracker to: " + hadoopOptions.getJobTracker().toString());
-
-            jobConf.set("mapreduce.jobtracker.address", hadoopOptions.getJobTracker().toString());
-
-            //System.out.println("Remote Path: " + fatJar.toString());
-            //DistributedCache.addFileToClassPath(fatJar, jobConf, hdfs);
             jobConf.setJarByClass(BulkPut.class);
 
             final File tempFile = HdfsUtils.writeToTemp(newChunks);

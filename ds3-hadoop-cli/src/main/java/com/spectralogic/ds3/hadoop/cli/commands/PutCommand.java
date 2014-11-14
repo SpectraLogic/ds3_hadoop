@@ -17,7 +17,7 @@ package com.spectralogic.ds3.hadoop.cli.commands;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3.hadoop.HadoopHelper;
+import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.Job;
 import com.spectralogic.ds3.hadoop.cli.Arguments;
 import com.spectralogic.ds3.hadoop.options.HadoopOptions;
@@ -55,7 +55,7 @@ public class PutCommand extends AbstractCommand {
             }
         });
 
-        final HadoopHelper helper = HadoopHelper.wrap(getDs3Client(), getHdfs(), getHadoopOptions());
+        final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(getDs3Client(), getHdfs(), getHadoopOptions());
 
         final Job job = helper.startWriteJob(getBucket(), objectList, WriteOptions.getDefault());
 

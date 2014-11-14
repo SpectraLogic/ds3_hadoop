@@ -16,7 +16,6 @@
 package com.spectralogic.ds3.hadoop;
 
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.options.ReadOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3.hadoop.util.ListUtils;
@@ -31,6 +30,7 @@ import com.spectralogic.ds3client.models.bulk.ChunkClientProcessingOrderGuarante
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
@@ -43,17 +43,14 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
     private final Ds3Client client;
     private final Ds3ClientHelpers helpers;
     private final FileSystem hdfs;
-    private final HadoopOptions hadoopOptions;
+    private final Configuration conf;
 
-    public Ds3HadoopHelperImpl(final Ds3Client client, final FileSystem hdfs) {
-        this(client, hdfs, HadoopOptions.getDefaultOptions());
-    }
 
-    public Ds3HadoopHelperImpl(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions) {
+    public Ds3HadoopHelperImpl(final Ds3Client client, final FileSystem hdfs, final Configuration configuration) {
         this.client = client;
         this.hdfs = hdfs;
         this.helpers = Ds3ClientHelpers.wrap(client);
-        this.hadoopOptions = hadoopOptions;
+        this.conf = configuration;
     }
 
     @Override
@@ -63,7 +60,7 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
 
         final MasterObjectList result = this.client.bulkPut(new BulkPutRequest(bucketName, Lists.newArrayList(ds3Objects))).getResult();
 
-        return new WriteJobImpl(client, hdfs, result, hadoopOptions, options);
+        return new WriteJobImpl(client, hdfs, result, conf, options);
     }
 
     @Override
@@ -74,7 +71,7 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
                 .withChunkOrdering(ChunkClientProcessingOrderGuarantee.NONE))
                 .getResult();
 
-        return new ReadJobImpl(client, hdfs, result, hadoopOptions, options);
+        return new ReadJobImpl(client, hdfs, result, conf, options);
     }
 
     @Override
@@ -89,7 +86,7 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
                 .withChunkOrdering(ChunkClientProcessingOrderGuarantee.NONE)).
                 getResult();
 
-        return new ReadJobImpl(client, hdfs, result, hadoopOptions, options);
+        return new ReadJobImpl(client, hdfs, result, conf, options);
     }
 
     private List<Ds3Object> convertToList(final ListBucketResult bucketList) {

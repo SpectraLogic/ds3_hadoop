@@ -20,4 +20,6 @@ public class HadoopConstants {
     public static final String HADOOP_JOB_UGI = "hadoop.job.ugi";
     public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
     public static final String MAPREDUCE_FRAMEWORK_NAME = "mapreduce.framework.name";
+    public static final String YARN = "yarn";
+    public static final String MAPRED_JOB_TRACKER = "mapred.job.tracker";
 }

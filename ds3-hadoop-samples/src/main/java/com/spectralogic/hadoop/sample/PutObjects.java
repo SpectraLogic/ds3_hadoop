@@ -15,8 +15,8 @@
 
 package com.spectralogic.hadoop.sample;
 
+import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.HadoopConstants;
-import com.spectralogic.ds3.hadoop.HadoopHelper;
 import com.spectralogic.ds3.hadoop.Job;
 import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
@@ -71,9 +71,6 @@ public class PutObjects {
 
                     System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
 
-                    final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
-                    hadoopOptions.setJobTracker(new InetSocketAddress("172.17.0.3", 8033));
-
                     final List<Ds3Object> objects = FileUtils.populateHadoop(hdfs);
                     transferToBlackPearl(client, hdfs, hadoopOptions, objects);
                 }
@@ -83,7 +80,7 @@ public class PutObjects {
     }
 
     public static void transferToBlackPearl(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions, final List<Ds3Object> objects) throws XmlProcessingException, SignatureException, IOException {
-        final HadoopHelper helper = HadoopHelper.wrap(client, hdfs, hadoopOptions);
+        final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, hadoopOptions);
 
         final Job job = helper.startWriteJob("books66", objects, WriteOptions.getDefault());
         job.transfer();

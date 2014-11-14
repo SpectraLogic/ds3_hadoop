@@ -15,12 +15,12 @@
 
 package com.spectralogic.ds3.hadoop;
 
-import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.options.ReadOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
@@ -31,12 +31,8 @@ import java.security.SignatureException;
  */
 public abstract class Ds3HadoopHelper {
 
-    public static Ds3HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs) {
-        return new Ds3HadoopHelperImpl(client, hdfs);
-    }
-
-    public static Ds3HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions) {
-        return new Ds3HadoopHelperImpl(client, hdfs, hadoopOptions);
+    public static Ds3HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs, final Configuration configuration) {
+        return new Ds3HadoopHelperImpl(client, hdfs, configuration);
     }
 
     public abstract Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final WriteOptions options) throws SignatureException, IOException, XmlProcessingException;
@@ -44,4 +40,16 @@ public abstract class Ds3HadoopHelper {
     public abstract Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException;
 
     public abstract Job startReadAllJob(final String bucketName, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException;
+
+    /**
+     * This returns a Hadoop Configration object with the 'fs.default.name' set to {@param nameNode}, 'mapred.job.tracker' set to {@param jobTracker}, and 'mapreduce.framework.name' set to 'yarn'.
+     */
+    public static Configuration createDefaultConfiguration(final String nameNode, final String jobTracker) {
+        final Configuration conf = new Configuration();
+        conf.set(HadoopConstants.MAPREDUCE_FRAMEWORK_NAME, HadoopConstants.YARN);
+        conf.set(HadoopConstants.FS_DEFAULT_NAME, nameNode);
+        conf.set(HadoopConstants.MAPRED_JOB_TRACKER, jobTracker);
+
+        return conf;
+    }
 }
