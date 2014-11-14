@@ -15,25 +15,11 @@
 
 package com.spectralogic.ds3.hadoop.cli.commands;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
-import com.spectralogic.ds3.hadoop.Job;
 import com.spectralogic.ds3.hadoop.cli.Arguments;
-import com.spectralogic.ds3.hadoop.options.HadoopOptions;
-import com.spectralogic.ds3.hadoop.options.WriteOptions;
-import com.spectralogic.ds3.hadoop.util.HdfsUtils;
-import com.spectralogic.ds3.hadoop.util.PathUtils;
-import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
 import java.security.SignatureException;
-import java.util.List;
 
 public class PutCommand extends AbstractCommand {
 
@@ -44,36 +30,7 @@ public class PutCommand extends AbstractCommand {
     @Override
     public Boolean call() throws SignatureException, IOException, XmlProcessingException {
 
-        final List<FileStatus> fileList = HdfsUtils.getFileList(getHdfs(), new Path(getInputDirectory()));
-        final List<Ds3Object> objectList = Lists.transform(HdfsUtils.convertFileStatusList(fileList), new Function<Ds3Object, Ds3Object>() {
-            @Override
-            public Ds3Object apply(final Ds3Object input) {
-                final String path = PathUtils.getWorkingDirPath(getHdfs());
-                final String newName = PathUtils.removePrefixFromPath(path, input.getName());
-                input.setName(newName);
-                return input;
-            }
-        });
-
-        final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(getDs3Client(), getHdfs(), getHadoopOptions());
-
-        final Job job = helper.startWriteJob(getBucket(), objectList, WriteOptions.getDefault());
-
-        job.transfer();
-
         return true;
     }
-
-    private HadoopOptions getHadoopOptions() {
-        final URI jobTracker = getJobTracker();
-
-        final HadoopOptions hadoopOptions = HadoopOptions.getDefaultOptions();
-
-        hadoopOptions.setJobTracker(new InetSocketAddress(jobTracker.getHost(), jobTracker.getPort()));
-        return hadoopOptions;
-    }
-
-
-
 
 }

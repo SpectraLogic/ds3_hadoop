@@ -18,7 +18,6 @@ package com.spectralogic.hadoop.sample;
 import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.HadoopConstants;
 import com.spectralogic.ds3.hadoop.Job;
-import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
@@ -31,7 +30,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URISyntaxException;
 import java.security.PrivilegedExceptionAction;
 import java.security.SignatureException;
@@ -46,43 +44,27 @@ public class PutObjects {
 
     public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException, InterruptedException {
         BasicConfigurator.configure();
-
         final RootLogger logger = (RootLogger) Logger.getRootLogger();
         logger.setLevel(Level.DEBUG);
 
         final Ds3Client client = Ds3ClientBuilder.create("192.168.56.103:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
+        final Configuration conf = Ds3HadoopHelper.createDefaultConfiguration("hdfs://172.17.0.2:9000", "172.17.0.2:8033");
+        conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
-        final Configuration conf = new Configuration();
         final UserGroupInformation usgi = UserGroupInformation.createRemoteUser("root");
-
         usgi.doAs(new PrivilegedExceptionAction<Object>() {
             @Override
             public Object run() throws Exception {
-                conf.set(HadoopConstants.FS_DEFAULT_NAME, "hdfs://172.17.0.3:9000");
-                conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
-
                 try (final FileSystem hdfs = FileSystem.get(conf)) {
-
-                    final Path resultDir = new Path("result");
-                    if (hdfs.exists(resultDir)) {
-                        System.out.println("Cleaning up the result directory.");
-                        hdfs.delete(resultDir, true);
-                    }
-
-                    System.out.printf("Total Used Hdfs Storage: %d\n", hdfs.getStatus().getUsed());
+                    FileUtils.cleanUpDirectory(hdfs, new Path("result"));
 
                     final List<Ds3Object> objects = FileUtils.populateHadoop(hdfs);
-                    transferToBlackPearl(client, hdfs, hadoopOptions, objects);
+                    final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, conf);
+                    final Job job = helper.startWriteJob("books66", objects, WriteOptions.getDefault());
+                    job.transfer();
                 }
                 return null;
             }
         });
-    }
-
-    public static void transferToBlackPearl(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions, final List<Ds3Object> objects) throws XmlProcessingException, SignatureException, IOException {
-        final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, hadoopOptions);
-
-        final Job job = helper.startWriteJob("books66", objects, WriteOptions.getDefault());
-        job.transfer();
     }
 }

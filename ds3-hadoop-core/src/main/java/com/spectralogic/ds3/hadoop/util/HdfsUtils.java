@@ -18,7 +18,6 @@ package com.spectralogic.ds3.hadoop.util;
 import com.spectralogic.ds3.hadoop.Constants;
 import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.HadoopConstants;
-import com.spectralogic.ds3.hadoop.options.HadoopOptions;
 import com.spectralogic.ds3.hadoop.mappers.FileEntry;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
@@ -40,10 +39,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,8 +73,6 @@ public class HdfsUtils {
         conf.set(Constants.SECRETKEY, connectionDetails.getCredentials().getKey());
         conf.set(Constants.ENDPOINT, connectionDetails.getEndpoint());
         conf.set(Constants.JOB_ID, jobId.toString());        
-        conf.set(HadoopConstants.MAPREDUCE_FRAMEWORK_NAME, "yarn");
-        conf.set(YarnConfiguration.IPC_RECORD_FACTORY_CLASS, "org.apache.hadoop.yarn.ipc.HadoopYarnProtoRPC");
 
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(LongWritable.class);
@@ -129,44 +123,5 @@ public class HdfsUtils {
         }
         obj.setSize(fileStatus.getLen());
         return obj;
-    }
-
-    /**
-     * Copies the job jar file to the remote cluster and sets it into the distributed cache for use by all nodes. 
-     */
-    public static Path setupJobJarFile(final FileSystem hdfs, final String tmpDir, final Class<?> klass) throws IOException {
-        final String jobJarFile = findContainingJar(klass);
-        final Path localJarFile = new Path(jobJarFile);
-
-        final File tempFile = File.createTempFile("migrator",".jar");
-        final String fullJarPath = PathUtils.join(tmpDir, tempFile.getName());
-        final Path remoteJarPath = hdfs.makeQualified(new Path(fullJarPath));
-
-        hdfs.copyFromLocalFile(false, localJarFile, remoteJarPath);
-
-        return remoteJarPath;
-    }
-
-    public static String findContainingJar(final Class<?> clazz) {
-        final ClassLoader loader = clazz.getClassLoader();
-        final String classFile = clazz.getName().replaceAll("\\.", "/") + ".class";
-        try {
-            for(final Enumeration<URL> itr = loader.getResources(classFile);
-                itr.hasMoreElements();) {
-                final URL url = itr.nextElement();
-                System.out.println("URL: " + url.toString());
-                if ("jar".equals(url.getProtocol())) {
-                    String toReturn = url.getPath();
-                    if (toReturn.startsWith("file:")) {
-                         toReturn = toReturn.substring("file:".length());
-                    }
-                    toReturn = URLDecoder.decode(toReturn, "UTF-8");
-                    return toReturn.replaceAll("!.*$", "");
-                }
-            }
-        } catch (final IOException e) {
-             throw new RuntimeException(e);
-        }
-        return null;
     }
 }
