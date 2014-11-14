@@ -37,15 +37,19 @@ import java.security.PrivilegedExceptionAction;
 public class GetObjects {
 
     public static void main(final String[] args) throws Exception {
+        // Setup basic logging which will log all output to the console
         BasicConfigurator.configure();
         final RootLogger logger = (RootLogger) Logger.getRootLogger();
         logger.setLevel(Level.DEBUG);
 
+        // Create a Ds3Client specifying the endpoint of the DS3 appliance and the credentials to use
         final Ds3Client client = Ds3ClientBuilder.create("192.168.56.103:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
 
+        // This populates the DS3 Appliance with canned test data
         final String bucketName = "readBooks18";
         FileUtils.poplulateDs3(client, bucketName);
 
+        // Creates a Hadoop Configuration Object.  It's important that all the fields this configures are set before it is used
         final Configuration conf = Ds3HadoopHelper.createDefaultConfiguration("hdfs://172.17.0.2:9000", "172.17.0.2:8033");
         conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
@@ -55,14 +59,17 @@ public class GetObjects {
             public Object run() throws Exception {
 
                 try (final FileSystem hdfs = FileSystem.get(conf)) {
-
+                    
                     FileUtils.cleanUpDirectory(hdfs, new Path("result"));
-
-                    final Ds3ClientHelpers ds3Helper = Ds3ClientHelpers.wrap(client);
-                    ds3Helper.ensureBucketExists(bucketName);
-
+                    
+                    // Create an instance of the Ds3HadoopHelper
                     final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, conf);
+                    
+                    // This job is going to read all the files in the blackpearl system and restore them 
+                    // to the Hadoop Cluster
                     final Job job = helper.startReadAllJob(bucketName, ReadOptions.getDefault());
+                    
+                    // This must be called for the transfer to begin
                     job.transfer();
 
                     System.out.println("Finished data transfer");
