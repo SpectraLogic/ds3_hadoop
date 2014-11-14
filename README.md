@@ -57,7 +57,7 @@ dependencies {
 Releases
 ========
 
-Currently the only release available is the STUB release.  This release contains the full API, but with a stubbed out implementation.  This allows for a user to begin writing an application with the API, but without the need for a fully functional Hadoop Cluster.
+Version `0.7.0-SNAPSHOT` is available for use.  This is the first version of the DS3 Hadoop SDK.  This version supports both bulk gets and bulk puts to a DS3 compliant device. 
 
 Samples
 =======
