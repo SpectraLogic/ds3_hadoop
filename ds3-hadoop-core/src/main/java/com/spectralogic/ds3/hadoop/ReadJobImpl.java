@@ -77,12 +77,13 @@ class ReadJobImpl implements Job {
             final JobConf jobConf = HdfsUtils.createJob(client.getConnectionDetails(), bucketName, this.jobId, BulkGet.class);
 
             final File tempFile = HdfsUtils.writeToTemp(chunks);
-            final String fileListPath = PathUtils.join(readOptions.getHadoopTmpDir(), tempFile.getName());
-            hdfs.copyFromLocalFile(new Path(tempFile.toString()), new Path(fileListPath));
+            final String fileListName = PathUtils.join(readOptions.getHadoopTmpDir(), tempFile.getName());
+            final Path fileListPath = hdfs.makeQualified(new Path(fileListName));
+            hdfs.copyFromLocalFile(new Path(tempFile.toString()), fileListPath);
             jobConf.set(HadoopConstants.HADOOP_TMP_DIR, readOptions.getHadoopTmpDir());
 
             FileInputFormat.setInputPaths(jobConf, fileListPath);
-            FileOutputFormat.setOutputPath(jobConf, new Path(readOptions.getJobOutputDir()));
+            FileOutputFormat.setOutputPath(jobConf, hdfs.makeQualified(new Path(readOptions.getJobOutputDir())));
 
             System.out.println("----- Starting get job -----");
 

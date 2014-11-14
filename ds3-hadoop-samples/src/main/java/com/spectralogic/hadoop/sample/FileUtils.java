@@ -35,9 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileUtils {
-    public static List<Ds3Object> populateHadoop(final FileSystem hdfs) throws IOException {
+    private static final String[] resources = new String[]{"books/beowulf.txt", "books/sherlock_holmes.txt", "books/tale_of_two_cities.txt", "books/ulysses.txt"};
 
-        final String[] resources = new String[]{"books/beowulf.txt", "books/sherlock_holmes.txt", "books/tale_of_two_cities.txt", "books/ulysses.txt"};
+    public static List<Ds3Object> populateHadoop(final FileSystem hdfs) throws IOException {
         final List<Ds3Object> objects = new ArrayList<>();
 
         for (final String resourceName : resources) {
@@ -57,13 +57,12 @@ public class FileUtils {
     }
 
     public static List<Ds3Object> poplulateDs3(final Ds3Client client, final String bucketName) throws IOException, SignatureException, XmlProcessingException {
-        final String[] resources = new String[]{"books/beowulf.txt", "books/sherlock_holmes.txt", "books/tale_of_two_cities.txt", "books/ulysses.txt"};
         final Ds3ClientHelpers helpers = Ds3ClientHelpers.wrap(client);
-
+	helpers.ensureBucketExists(bucketName);
         final List<Ds3Object> objects = new ArrayList<>();
 
         for (final String resourceName : resources) {
-            System.out.println("Processing: " + resourceName);
+            System.out.println("Adding: " + resourceName);
             final File file =  new File (FileUtils.class.getClassLoader().getResource(resourceName).getFile());
 
             objects.add(new Ds3Object(resourceName, file.length()));
@@ -74,6 +73,7 @@ public class FileUtils {
         writeJob.transfer(new Ds3ClientHelpers.ObjectChannelBuilder() {
             @Override
             public SeekableByteChannel buildChannel(final String s) throws IOException {
+                System.out.println("Building the Resource Channel for: " + s);
                 final URL fileName = FileUtils.class.getClassLoader().getResource(s);
                 try {
                     return FileChannel.open(Paths.get(fileName.toURI()));

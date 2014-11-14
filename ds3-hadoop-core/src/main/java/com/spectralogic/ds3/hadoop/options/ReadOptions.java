@@ -24,7 +24,7 @@ public class ReadOptions extends AbstractJobOptions {
 
         final ReadOptions defaultOptions = new ReadOptions();
 
-        defaultOptions.setJobOutputDir("~/result");
+        defaultOptions.setJobOutputDir("result");
         defaultOptions.setHadoopTmpDir("/tmp/hadoop/ds3");
 
         return defaultOptions;
