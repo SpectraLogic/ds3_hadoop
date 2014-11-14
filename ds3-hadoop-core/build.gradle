@@ -10,7 +10,7 @@ dependencies {
 
 shadowJar {
   dependencies {
-    include(dependency('com.spectralogic.ds3:ds3-sdk:0.7.6-SNAPSHOT:all'))
+    include(dependency('com.spectralogic.ds3:ds3-sdk:0.7.7-SNAPSHOT:all'))
   }
 }
 
