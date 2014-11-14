@@ -26,7 +26,7 @@ You can also use the ds3_hadoop code with our pre-compiled Jars in your Maven or
       <dependency>
         <groupId>com.spectralogic.ds3-hadoop</groupId>
         <artifactId>ds3-hadoop-core</artifactId>
-        <version>0.7.0-STUB</version>
+        <version>0.7.0-SNAPSHOT</version>
       </dependency>
     ...  
     </dependencies>
@@ -48,7 +48,7 @@ repositories {
 
 dependencies {
     ...
-    compile 'com.spectralogic.ds3-hadoop:ds3-hadoop-core:0.7.0-STUB'
+    compile 'com.spectralogic.ds3-hadoop:ds3-hadoop-core:0.7.0-SNAPSHOT'
     ...
 }
 
