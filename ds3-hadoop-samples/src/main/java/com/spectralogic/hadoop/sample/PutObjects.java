@@ -43,11 +43,15 @@ import org.apache.log4j.BasicConfigurator;
 public class PutObjects {
 
     public static void main(final String[] args) throws IOException, SignatureException, XmlProcessingException, URISyntaxException, InterruptedException {
+        // Setup basic logging which will log all output to the console
         BasicConfigurator.configure();
         final RootLogger logger = (RootLogger) Logger.getRootLogger();
         logger.setLevel(Level.DEBUG);
-
+        
+        // Create a Ds3Client specifying the endpoint of the DS3 appliance and the credentials to use
         final Ds3Client client = Ds3ClientBuilder.create("192.168.56.103:8080", new Credentials("c3BlY3RyYQ==", "LEFsvgW2")).withHttps(false).build();
+        
+        // Creates a Hadoop Configuration Object.  It's important that all the fields this configures are set before it is used
         final Configuration conf = Ds3HadoopHelper.createDefaultConfiguration("hdfs://172.17.0.2:9000", "172.17.0.2:8033");
         conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
@@ -57,10 +61,18 @@ public class PutObjects {
             public Object run() throws Exception {
                 try (final FileSystem hdfs = FileSystem.get(conf)) {
                     FileUtils.cleanUpDirectory(hdfs, new Path("result"));
-
+                    
+                    // Convience method to populate Hadoop with canned test data.  This returns the list of test
+                    // files that were uploaded to the cluster which we will then transfer via DS3
                     final List<Ds3Object> objects = FileUtils.populateHadoop(hdfs);
+                    
+                    // Create an instance of the Ds3HadoopHelper
                     final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, conf);
-                    final Job job = helper.startWriteJob("books66", objects, WriteOptions.getDefault());
+                    
+                    // This creates the DS3 transfer job to buckets 'books'
+                    final Job job = helper.startWriteJob("books", objects, WriteOptions.getDefault());
+                    
+                    // This must be called for the transfer to begin
                     job.transfer();
                 }
                 return null;
