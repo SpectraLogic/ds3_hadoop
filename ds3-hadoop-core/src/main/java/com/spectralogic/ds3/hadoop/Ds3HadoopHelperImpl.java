@@ -38,18 +38,18 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 
-class HadoopHelperImpl extends HadoopHelper {
+class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
 
     private final Ds3Client client;
     private final Ds3ClientHelpers helpers;
     private final FileSystem hdfs;
     private final HadoopOptions hadoopOptions;
 
-    public HadoopHelperImpl(final Ds3Client client, final FileSystem hdfs) {
+    public Ds3HadoopHelperImpl(final Ds3Client client, final FileSystem hdfs) {
         this(client, hdfs, HadoopOptions.getDefaultOptions());
     }
 
-    public HadoopHelperImpl(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions) {
+    public Ds3HadoopHelperImpl(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions) {
         this.client = client;
         this.hdfs = hdfs;
         this.helpers = Ds3ClientHelpers.wrap(client);

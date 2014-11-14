@@ -29,14 +29,14 @@ import java.security.SignatureException;
 /**
  * Base class that defines Hadoop Utilities to transfer objects between DS3 and a Hadoop Cluster.
  */
-public abstract class HadoopHelper {
+public abstract class Ds3HadoopHelper {
 
-    public static HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs) {
-        return new HadoopHelperImpl(client, hdfs);
+    public static Ds3HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs) {
+        return new Ds3HadoopHelperImpl(client, hdfs);
     }
 
-    public static HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions) {
-        return new HadoopHelperImpl(client, hdfs, hadoopOptions);
+    public static Ds3HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs, final HadoopOptions hadoopOptions) {
+        return new Ds3HadoopHelperImpl(client, hdfs, hadoopOptions);
     }
 
     public abstract Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final WriteOptions options) throws SignatureException, IOException, XmlProcessingException;
