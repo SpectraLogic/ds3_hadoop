@@ -65,8 +65,8 @@ public class GetObjects {
                     // Create an instance of the Ds3HadoopHelper
                     final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, conf);
                     
-                    // This job is going to read all the files in the blackpearl system and restore them 
-                    // to the Hadoop Cluster
+                    // This job is going to read all the objects out of the bucket passed in by `bucketName` to 
+                    // hdfs as files
                     final Job job = helper.startReadAllJob(bucketName, ReadOptions.getDefault());
                     
                     // This must be called for the transfer to begin
