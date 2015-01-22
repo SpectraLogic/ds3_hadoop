@@ -66,6 +66,11 @@ class ReadJobImpl implements Job {
     }
 
     @Override
+    public Iterator<RunningJob> iterator() throws IOException {
+        throw new UnsupportedOperationException("For the moment please use the transfer method.");
+    }
+
+    @Override
     public void transfer() throws IOException, SignatureException {
         final ChunkGenerator chunkGenerator = new ChunkGenerator(client, jobId, masterObjectList.getObjects());
         final ObjectPartTracker partTracker = new ObjectPartTracker();

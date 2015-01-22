@@ -16,23 +16,14 @@
 package com.spectralogic.ds3.hadoop;
 
 
-import com.spectralogic.ds3.hadoop.mappers.BulkPut;
 import com.spectralogic.ds3.hadoop.options.WriteOptions;
-import com.spectralogic.ds3.hadoop.util.HdfsUtils;
-import com.spectralogic.ds3.hadoop.util.PathUtils;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.AllocateJobChunkRequest;
-import com.spectralogic.ds3client.commands.AllocateJobChunkResponse;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
-import com.spectralogic.ds3client.models.bulk.Objects;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.*;
 
-import java.io.File;
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.*;
 
 class WriteJobImpl implements Job {
@@ -65,85 +56,23 @@ class WriteJobImpl implements Job {
     }
 
     @Override
-    public void transfer() throws IOException, SignatureException {
-        final ChunkAllocator chunkAllocator = new ChunkAllocator(this.masterObjectList.getObjects());
-        final JobClient jobClient = new JobClient(conf);
-
-        while (chunkAllocator.hasMoreChunks()) {
-            final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
-            final JobConf jobConf = HdfsUtils.createJob(conf, ds3Client.getConnectionDetails(), bucketName, this.jobId, BulkPut.class);
-
-            jobConf.setJarByClass(BulkPut.class);
-
-            final File tempFile = HdfsUtils.writeToTemp(newChunks);
-            final String fileListName = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());
-            final Path fileListPath = hdfs.makeQualified(new Path(fileListName));
-
-            hdfs.copyFromLocalFile(new Path(tempFile.toString()), fileListPath);
-            jobConf.set(HadoopConstants.HADOOP_TMP_DIR, options.getHadoopTmpDir());
-
-            System.out.println("Tmp File: " + fileListName);
-
-            FileInputFormat.setInputPaths(jobConf, fileListPath);
-            FileOutputFormat.setOutputPath(jobConf, hdfs.makeQualified(new Path(options.getJobOutputDir())));
-
-            System.out.println("----- Starting put job -----");
-
-            final RunningJob runningJob = jobClient.submitJob(jobConf);
-            runningJob.waitForCompletion();
-
-            System.out.println("Error result: " + runningJob.getFailureInfo());
-
-            System.out.println("----- Job finished running -----");
-        }
+    public HadoopJobIterator iterator() throws IOException {
+        return new HadoopJobIterator(this.ds3Client, this.conf, this.hdfs, this.options, this.bucketName, this.masterObjectList);
     }
 
-    private class ChunkAllocator {
-
-        final PriorityQueue<Objects> chunks;
-
-        public ChunkAllocator(final List<Objects> objs) {
-            this.chunks = new PriorityQueue<>(objs.size(), new Comparator<Objects>() {
-                @Override
-                public int compare(final Objects o1, final Objects o2) {
-                    return Long.compare(o1.getChunkNumber(), o2.getChunkNumber());
-                }
-            });
-            this.chunks.addAll(objs);
-        }
-
-        public boolean hasMoreChunks() {
-            return !chunks.isEmpty();
-        }
-
-        private AllocateJobChunkResponse allocateChunk(final UUID id) throws IOException, SignatureException {
-            return ds3Client.allocateJobChunk(new AllocateJobChunkRequest(id));
-        }
-
-        public List<Objects> getAvailableChunks() throws IOException, SignatureException {
-            final List<Objects> newChunks = new ArrayList<>();
-
-            boolean continueAllocatingChunks = true;
-            while(continueAllocatingChunks && hasMoreChunks()){
-                final AllocateJobChunkResponse response = allocateChunk(chunks.poll().getChunkId());
-                final AllocateJobChunkResponse.Status status = response.getStatus();
-
-                if (status == AllocateJobChunkResponse.Status.RETRYLATER && newChunks.isEmpty()) {
-                    try {
-                        Thread.sleep(response.getRetryAfterSeconds()*1000);
-                    } catch (final InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if (status == AllocateJobChunkResponse.Status.RETRYLATER) {
-                    continueAllocatingChunks = false;
-                }
-                else {
-                    newChunks.add(response.getObjects());
-                }
+    @Override
+    public void transfer() throws Exception {
+        final HadoopJobIterator iter = this.iterator();
+        while(iter.hasNext()) {
+            final RunningJob job = iter.next();
+            if (job == null) {
+                throw iter.getException();
             }
-            return newChunks;
+            job.waitForCompletion();
+
+            if (!job.isSuccessful()) {
+                System.out.print(job.getFailureInfo());
+            }
         }
     }
-
 }

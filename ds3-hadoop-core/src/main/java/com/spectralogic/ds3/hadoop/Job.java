@@ -15,8 +15,11 @@
 
 package com.spectralogic.ds3.hadoop;
 
+import org.apache.hadoop.mapred.RunningJob;
+
 import java.io.IOException;
 import java.security.SignatureException;
+import java.util.Iterator;
 import java.util.UUID;
 
 public interface Job {
@@ -24,5 +27,7 @@ public interface Job {
 
     public String getBucketName();
 
-    public void transfer() throws IOException, SignatureException;
+    Iterator<RunningJob> iterator() throws IOException;
+
+    public void transfer() throws IOException, SignatureException, Exception;
 }
