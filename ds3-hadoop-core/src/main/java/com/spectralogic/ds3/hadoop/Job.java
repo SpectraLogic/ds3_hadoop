@@ -15,19 +15,21 @@
 
 package com.spectralogic.ds3.hadoop;
 
-import org.apache.hadoop.mapred.RunningJob;
-
 import java.io.IOException;
 import java.security.SignatureException;
-import java.util.Iterator;
 import java.util.UUID;
 
 public interface Job {
+
+    public AbstractJobConfFactory getJobConfFactory();
+
+    public void setJobConfFactory(final AbstractJobConfFactory jobConfFactory);
+
     public UUID getJobId();
 
     public String getBucketName();
 
-    Iterator<RunningJob> iterator() throws IOException;
+    HadoopJobIterator iterator() throws IOException;
 
     public void transfer() throws IOException, SignatureException, Exception;
 }

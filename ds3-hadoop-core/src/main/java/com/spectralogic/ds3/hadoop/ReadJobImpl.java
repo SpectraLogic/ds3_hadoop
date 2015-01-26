@@ -56,6 +56,16 @@ class ReadJobImpl implements Job {
     }
 
     @Override
+    public AbstractJobConfFactory getJobConfFactory() {
+        return null;
+    }
+
+    @Override
+    public void setJobConfFactory(AbstractJobConfFactory jobConfFactory) {
+
+    }
+
+    @Override
     public UUID getJobId() {
         return this.jobId;
     }
@@ -66,7 +76,7 @@ class ReadJobImpl implements Job {
     }
 
     @Override
-    public Iterator<RunningJob> iterator() throws IOException {
+    public HadoopJobIterator iterator() throws IOException {
         throw new UnsupportedOperationException("For the moment please use the transfer method.");
     }
 

@@ -35,6 +35,8 @@ class WriteJobImpl implements Job {
     private final WriteOptions options;
     private final Configuration conf;
 
+    private AbstractJobConfFactory jobConfFactory = new DefaultJobConfFactory();
+
     public WriteJobImpl(final Ds3Client ds3Client1, final FileSystem hdfs, final MasterObjectList masterObjectList, final Configuration configuration, final WriteOptions options) {
         this.ds3Client = ds3Client1;
         this.hdfs = hdfs;
@@ -43,6 +45,16 @@ class WriteJobImpl implements Job {
         this.bucketName = masterObjectList.getBucketName();
         this.options = options;
         this.conf = configuration;
+    }
+
+    @Override
+    public AbstractJobConfFactory getJobConfFactory() {
+        return jobConfFactory;
+    }
+
+    @Override
+    public void setJobConfFactory(final AbstractJobConfFactory jobConfFactory) {
+        this.jobConfFactory = jobConfFactory;
     }
 
     @Override
@@ -57,7 +69,7 @@ class WriteJobImpl implements Job {
 
     @Override
     public HadoopJobIterator iterator() throws IOException {
-        return new HadoopJobIterator(this.ds3Client, this.conf, this.hdfs, this.options, this.bucketName, this.masterObjectList);
+        return new HadoopJobIterator(jobConfFactory, this.ds3Client, this.conf, this.hdfs, this.options, this.bucketName, this.masterObjectList);
     }
 
     @Override
@@ -65,9 +77,6 @@ class WriteJobImpl implements Job {
         final HadoopJobIterator iter = this.iterator();
         while(iter.hasNext()) {
             final RunningJob job = iter.next();
-            if (job == null) {
-                throw iter.getException();
-            }
             job.waitForCompletion();
 
             if (!job.isSuccessful()) {
