@@ -29,7 +29,7 @@ To install the latest ds3_hadoop code either download the latest release jar fil
       <dependency>
         <groupId>com.spectralogic.ds3-hadoop</groupId>
         <artifactId>ds3-hadoop-core</artifactId>
-        <version>0.7.1-SNAPSHOT</version>
+        <version>0.7.2-SNAPSHOT</version>
       </dependency>
     ...  
     </dependencies>
@@ -52,7 +52,7 @@ repositories {
 
 dependencies {
     ...
-    compile 'com.spectralogic.ds3-hadoop:ds3-hadoop-core:0.7.1-SNAPSHOT'
+    compile 'com.spectralogic.ds3-hadoop:ds3-hadoop-core:0.7.2-SNAPSHOT'
     ...
 }
 
