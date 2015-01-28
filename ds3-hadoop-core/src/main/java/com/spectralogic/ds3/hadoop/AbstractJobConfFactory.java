@@ -14,14 +14,24 @@ import java.util.UUID;
 /**
  * The base class for all JobConfFactories.  The base factory will call a users 'createNewJobConf' when constructing
  * a new JobConf object.  After the user defined method has been called, the factory will add all DS3 job specific
- * configurations.  This includes:
- * * Setting the jar for the job
- * * Setting the mapper class for the job
- * * Setting several DS3 specific constants [bucket_name, job_id, endpoint, etc...]
- * * Setting the inputFormat
- * * Setting the ouputKeyClass
- * * Setting the outputValueCalss
- * * Setting the outputFormat
+ * configurations.  This includes Ds3 specific values and mapreduce values.  Here is a list of calls that we use to
+ * configure the JobConf object:
+ * 
+ * <ul>
+ * <li>setJarByClass</li>
+ * <li>set("https")</li>
+ * <li>set("certificateVerification")</li>
+ * <li>set("bucket")</li>
+ * <li>set("accessKeyId")</li>
+ * <li>set("secretKey")</li>
+ * <li>set("endpoint")</li>
+ * <li>set("jobId")</li>
+ * <li>setOutputKeyClass(Text.class)</li>
+ * <li>setOutputValueClass(LongWritable.class)</li>
+ * <li>setInputFormat(TextInputFormat.class)</li>
+ * <li>setOutputFormat(TextOutputFormat.class)</li>
+ * <li>setMapperClass(BulkPut.class or BulkGet.class)</li>
+ * </ul>
  *
  * If any of these fields are set in the user defined method, we will override them.
  */
