@@ -23,7 +23,7 @@ subprojects {
     buildscript {
       repositories { jcenter() }
       dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.1.1'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
       }
     }
 
@@ -80,5 +80,5 @@ project(':ds3-hadoop-samples') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.1'
+    gradleVersion = '2.2.1'
 }
