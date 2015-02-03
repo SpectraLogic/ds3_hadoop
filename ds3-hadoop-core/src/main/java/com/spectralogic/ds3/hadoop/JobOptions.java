@@ -13,24 +13,38 @@
  * ****************************************************************************
  */
 
-package com.spectralogic.ds3.hadoop.options;
+package com.spectralogic.ds3.hadoop;
 
-public class ReadOptions extends AbstractJobOptions {
+public class JobOptions {
 
-    /**
-     * Returns a new Default ReadOptions object with JobOutputDir set to '~/result' and hadoopTmpDir set to '/tmp/hadoop/ds3'
-     */
-    public static ReadOptions getDefault() {
+    public static JobOptions getDefault(final String tmpDir) {
 
-        final ReadOptions defaultOptions = new ReadOptions();
+        final JobOptions options = new JobOptions();
+        options.setJobOutputDir("result");
+        options.setHadoopTmpDir(tmpDir);
 
-        defaultOptions.setJobOutputDir("result");
-        defaultOptions.setHadoopTmpDir("/tmp/hadoop/ds3");
-
-        return defaultOptions;
+        return options;
     }
 
-    private String prefix;
+    private String hadoopTmpDir = null;
+    private String jobOutputDir = null;
+    private String prefix = null;
+
+    public String getHadoopTmpDir() {
+        return hadoopTmpDir;
+    }
+
+    public void setHadoopTmpDir(final String hadoopTmpDir) {
+        this.hadoopTmpDir = hadoopTmpDir;
+    }
+
+    public String getJobOutputDir() {
+        return jobOutputDir;
+    }
+
+    public void setJobOutputDir(final String jobOutputDir) {
+        this.jobOutputDir = jobOutputDir;
+    }
 
     public String getPrefix() {
         return prefix;
@@ -39,4 +53,5 @@ public class ReadOptions extends AbstractJobOptions {
     public void setPrefix(final String prefix) {
         this.prefix = prefix;
     }
+
 }

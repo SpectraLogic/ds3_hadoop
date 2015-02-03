@@ -16,7 +16,6 @@
 package com.spectralogic.ds3.hadoop;
 
 
-import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
 import org.apache.hadoop.conf.Configuration;
@@ -32,12 +31,12 @@ class WriteJobImpl implements Job {
     private final MasterObjectList masterObjectList;
     private final UUID jobId;
     private final String bucketName;
-    private final WriteOptions options;
+    private final JobOptions options;
     private final Configuration conf;
 
     private AbstractJobConfFactory jobConfFactory = new DefaultJobConfFactory();
 
-    public WriteJobImpl(final Ds3Client ds3Client1, final FileSystem hdfs, final MasterObjectList masterObjectList, final Configuration configuration, final WriteOptions options) {
+    public WriteJobImpl(final Ds3Client ds3Client1, final FileSystem hdfs, final MasterObjectList masterObjectList, final Configuration configuration, final JobOptions options) {
         this.ds3Client = ds3Client1;
         this.hdfs = hdfs;
         this.masterObjectList = masterObjectList;

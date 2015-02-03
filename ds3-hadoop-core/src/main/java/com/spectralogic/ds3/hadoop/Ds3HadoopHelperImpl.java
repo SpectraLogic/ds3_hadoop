@@ -16,8 +16,6 @@
 package com.spectralogic.ds3.hadoop;
 
 import com.google.common.collect.Lists;
-import com.spectralogic.ds3.hadoop.options.ReadOptions;
-import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3.hadoop.util.ListUtils;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.commands.BulkGetRequest;
@@ -54,7 +52,7 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
     }
 
     @Override
-    public Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final WriteOptions options) throws SignatureException, IOException, XmlProcessingException {
+    public Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final JobOptions options) throws SignatureException, IOException, XmlProcessingException {
 
         helpers.ensureBucketExists(bucketName);
 
@@ -64,7 +62,7 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
     }
 
     @Override
-    public Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final ReadOptions options)throws SignatureException, IOException, XmlProcessingException {
+    public Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final JobOptions options)throws SignatureException, IOException, XmlProcessingException {
 
         final MasterObjectList result = this.client.bulkGet(new BulkGetRequest(bucketName,
                     Lists.newArrayList(ds3Objects))
@@ -75,7 +73,7 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
     }
 
     @Override
-    public Job startReadAllJob(final String bucketName, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException {
+    public Job startReadAllJob(final String bucketName, final JobOptions options) throws SignatureException, IOException, XmlProcessingException {
         // ------------- Get file list from DS3 -------------
         final ListBucketResult fileList = this.client.getBucket(new GetBucketRequest(bucketName)).getResult();
         final List<Ds3Object> objects = convertToList(fileList);

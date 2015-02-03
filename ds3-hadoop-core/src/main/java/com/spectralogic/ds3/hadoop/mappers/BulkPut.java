@@ -15,7 +15,6 @@
 
 package com.spectralogic.ds3.hadoop.mappers;
 
-
 import com.spectralogic.ds3.hadoop.Constants;
 import com.spectralogic.ds3.hadoop.util.PathUtils;
 import com.spectralogic.ds3.hadoop.util.SeekableReadHadoopChannel;
@@ -35,12 +34,15 @@ import java.io.IOException;
 import java.security.SignatureException;
 import java.util.UUID;
 
+import static com.spectralogic.ds3.hadoop.mappers.MapperUtils.*;
+
 public class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text, Text, LongWritable> {
 
     private Ds3Client client;
     private FileSystem hadoopFs;
     private String bucketName;
     private UUID jobId;
+    private String prefix;
 
     @Override
     public void configure(final JobConf conf) {
@@ -55,6 +57,9 @@ public class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text,
         }
         this.bucketName = conf.get(Constants.BUCKET);
         this.jobId = UUID.fromString(conf.get(Constants.JOB_ID));
+        this.prefix = conf.get(Constants.PREFIX);
+
+        printJobConf(conf);
     }
 
     @Override
@@ -64,19 +69,9 @@ public class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text,
         }
 
         final FileEntry entry = FileEntry.fromString(value.toString());
-
-        final Path rootPathName = new Path(PathUtils.getWorkingDirPath(hadoopFs));
-
-        final Path passedInFilePath = new Path(entry.getFileName());
-
-        final Path filePath;
-        if (passedInFilePath.isUriPathAbsolute()) {
-            filePath = passedInFilePath;
-        } else {
-            filePath = new Path(rootPathName, passedInFilePath);
-        }
-
-        System.out.println("Processing file: " + filePath.toString());
+        final Path filePath = getPath(entry.getFileName());
+        System.out.println("Target object: " + entry.getFileName());
+        System.out.println("Local HDFS filename: " + filePath.toString());
 
         try (final FSDataInputStream stream = hadoopFs.open(filePath)) {
             System.out.println("Starting put operation...");
@@ -92,5 +87,19 @@ public class BulkPut extends MapReduceBase implements Mapper<LongWritable, Text,
             e.printStackTrace();
             throw e;
         }
+    }
+
+    private Path getPath(final String fileName) {
+        final Path rootPathName = new Path(PathUtils.getWorkingDirPath(hadoopFs));
+
+        final Path passedInFilePath = new Path(fileName);
+
+        final Path filePath;
+        if (this.prefix != null) {
+            filePath = new Path(this.prefix, passedInFilePath);
+        } else {
+            filePath = new Path(rootPathName, passedInFilePath);
+        }
+        return filePath;
     }
 }

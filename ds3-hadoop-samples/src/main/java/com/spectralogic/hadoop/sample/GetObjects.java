@@ -18,10 +18,9 @@ package com.spectralogic.hadoop.sample;
 import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.HadoopConstants;
 import com.spectralogic.ds3.hadoop.Job;
-import com.spectralogic.ds3.hadoop.options.ReadOptions;
+import com.spectralogic.ds3.hadoop.JobOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Credentials;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -67,7 +66,7 @@ public class GetObjects {
                     
                     // This job is going to read all the objects out of the bucket passed in by `bucketName` to 
                     // hdfs as files
-                    final Job job = helper.startReadAllJob(bucketName, ReadOptions.getDefault());
+                    final Job job = helper.startReadAllJob(bucketName, JobOptions.getDefault("/tmp"));
                     
                     // This must be called for the transfer to begin
                     job.transfer();

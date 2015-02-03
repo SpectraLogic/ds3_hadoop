@@ -1,7 +1,6 @@
 package com.spectralogic.ds3.hadoop;
 
 import com.spectralogic.ds3.hadoop.mappers.BulkPut;
-import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3.hadoop.util.HdfsUtils;
 import com.spectralogic.ds3.hadoop.util.PathUtils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -25,11 +24,11 @@ public class HadoopJobIterator {
     private final Configuration conf;
     private final Ds3Client ds3Client;
     private final FileSystem hdfs;
-    private final WriteOptions options;
+    private final JobOptions options;
     private final String bucketName;
     private final AbstractJobConfFactory jobConfFactory;
 
-    HadoopJobIterator(final AbstractJobConfFactory jobConfFactory, final Ds3Client client, final Configuration conf, final FileSystem hdfs, final WriteOptions options, final String bucketName, final MasterObjectList masterObjectList) throws IOException {
+    HadoopJobIterator(final AbstractJobConfFactory jobConfFactory, final Ds3Client client, final Configuration conf, final FileSystem hdfs, final JobOptions options, final String bucketName, final MasterObjectList masterObjectList) throws IOException {
         this.jobConfFactory = jobConfFactory;
         this.conf = conf;
         this.hdfs = hdfs;
@@ -53,8 +52,11 @@ public class HadoopJobIterator {
         final String fileListName = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());
         final Path fileListPath = hdfs.makeQualified(new Path(fileListName));
 
-        jobConf.set(HadoopConstants.HADOOP_TMP_DIR, options.getHadoopTmpDir());
         hdfs.copyFromLocalFile(new Path(tempFile.toString()), fileListPath);
+
+        if (options.getPrefix() != null) {
+            jobConf.set(Constants.PREFIX, options.getPrefix());
+        }
 
         FileInputFormat.setInputPaths(jobConf, fileListPath);
         FileOutputFormat.setOutputPath(jobConf, hdfs.makeQualified(new Path(options.getJobOutputDir())));

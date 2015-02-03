@@ -19,12 +19,12 @@ public class Constants {
 
     public static final String JOB_NAME = "DS3_Archive";
 
-    public static final String JOB_ID = "jobId";
-    public static final String HTTPS = "https";
-    public static final String BUCKET = "bucket";
-    public static final String ACCESSKEY = "accessKeyId";
-    public static final String SECRETKEY = "secretKey";
-    public static final String ENDPOINT = "endpoint";
-    public static final String CERTIFICATE_VERIFICATION = "certificateVerification";
-    public static final String PREFIX = "prefix";
+    public static final String JOB_ID = "ds3-jobId";
+    public static final String HTTPS = "ds3-https";
+    public static final String BUCKET = "ds3-bucket";
+    public static final String ACCESSKEY = "ds3-accessKeyId";
+    public static final String SECRETKEY = "ds3-secretKey";
+    public static final String ENDPOINT = "ds3-endpoint";
+    public static final String CERTIFICATE_VERIFICATION = "ds3-certificateVerification";
+    public static final String PREFIX = "ds3-prefix";
 }

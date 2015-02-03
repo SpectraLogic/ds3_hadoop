@@ -18,7 +18,7 @@ package com.spectralogic.hadoop.sample;
 import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.HadoopConstants;
 import com.spectralogic.ds3.hadoop.Job;
-import com.spectralogic.ds3.hadoop.options.WriteOptions;
+import com.spectralogic.ds3.hadoop.JobOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.models.Credentials;
@@ -70,7 +70,7 @@ public class PutObjects {
                     final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, conf);
                     
                     // This creates the DS3 transfer job to buckets 'books'
-                    final Job job = helper.startWriteJob("books", objects, WriteOptions.getDefault());
+                    final Job job = helper.startWriteJob("books", objects, JobOptions.getDefault("/tmp"));
                     
                     // This must be called for the transfer to begin
                     job.transfer();

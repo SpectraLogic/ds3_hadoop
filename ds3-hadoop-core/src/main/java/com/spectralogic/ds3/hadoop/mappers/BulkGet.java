@@ -34,6 +34,8 @@ import java.nio.channels.WritableByteChannel;
 import java.security.SignatureException;
 import java.util.UUID;
 
+import static com.spectralogic.ds3.hadoop.mappers.MapperUtils.*;
+
 public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text, Text, LongWritable> {
 
     private Ds3Client client;
@@ -56,6 +58,8 @@ public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text,
         bucketName = conf.get(Constants.BUCKET);
         prefix = conf.get(Constants.PREFIX);
         jobId = UUID.fromString(conf.get(Constants.JOB_ID));
+
+        printJobConf(conf);
     }
 
     @Override

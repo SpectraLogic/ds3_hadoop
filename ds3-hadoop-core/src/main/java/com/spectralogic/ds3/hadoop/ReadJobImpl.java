@@ -16,7 +16,6 @@
 package com.spectralogic.ds3.hadoop;
 
 import com.spectralogic.ds3.hadoop.mappers.BulkGet;
-import com.spectralogic.ds3.hadoop.options.ReadOptions;
 import com.spectralogic.ds3.hadoop.util.HdfsUtils;
 import com.spectralogic.ds3.hadoop.util.PathUtils;
 import com.spectralogic.ds3client.Ds3Client;
@@ -42,10 +41,10 @@ class ReadJobImpl implements Job {
     private final String bucketName;
     private final MasterObjectList masterObjectList;
     private final FileSystem hdfs;
-    private final ReadOptions readOptions;
+    private final JobOptions readOptions;
     private final Configuration conf;
 
-    ReadJobImpl(final Ds3Client client, final FileSystem hdfs, final MasterObjectList result, final Configuration configuration, final ReadOptions readOptions) {
+    ReadJobImpl(final Ds3Client client, final FileSystem hdfs, final MasterObjectList result, final Configuration configuration, final JobOptions readOptions) {
         this.client = client;
         this.hdfs = hdfs;
         this.masterObjectList = result;

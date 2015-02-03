@@ -15,8 +15,6 @@
 
 package com.spectralogic.ds3.hadoop;
 
-import com.spectralogic.ds3.hadoop.options.ReadOptions;
-import com.spectralogic.ds3.hadoop.options.WriteOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
@@ -35,11 +33,11 @@ public abstract class Ds3HadoopHelper {
         return new Ds3HadoopHelperImpl(client, hdfs, configuration);
     }
 
-    public abstract Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final WriteOptions options) throws SignatureException, IOException, XmlProcessingException;
+    public abstract Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
 
-    public abstract Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException;
+    public abstract Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
 
-    public abstract Job startReadAllJob(final String bucketName, final ReadOptions options) throws SignatureException, IOException, XmlProcessingException;
+    public abstract Job startReadAllJob(final String bucketName, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
 
     /**
      * This returns a Hadoop Configration object with the 'fs.default.name' set to {@param nameNode}, 'mapred.job.tracker' set to {@param jobTracker}, and 'mapreduce.framework.name' set to 'yarn'.
