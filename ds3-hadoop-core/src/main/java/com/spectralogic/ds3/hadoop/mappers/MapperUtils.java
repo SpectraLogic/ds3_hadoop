@@ -10,7 +10,7 @@ public class MapperUtils {
         System.out.println("Printing jobConf values:");
         for(final Map.Entry<String, String> jobConfValue: conf) {
             final String key = jobConfValue.getKey();
-            if (key.equals(Constants.ACCESSKEY)) {
+            if (key.equals(Constants.SECRETKEY)) {
                 System.out.println(key + ": <filtered>");
             }
             else {

@@ -68,9 +68,15 @@ public class PutObjects {
                     
                     // Create an instance of the Ds3HadoopHelper
                     final Ds3HadoopHelper helper = Ds3HadoopHelper.wrap(client, hdfs, conf);
-                    
+
+                    // Create a job configuration object to tell the helper where the hadoop temp dir is
+                    // as well as a prefix to use when getting the objects from HDFS.  This allows you
+                    // to use absolute paths.
+                    final JobOptions options = JobOptions.getDefault("/tmp");
+                    options.setPrefix("/user/root");
+
                     // This creates the DS3 transfer job to buckets 'books'
-                    final Job job = helper.startWriteJob("books", objects, JobOptions.getDefault("/tmp"));
+                    final Job job = helper.startWriteJob("books", objects, options);
                     
                     // This must be called for the transfer to begin
                     job.transfer();
