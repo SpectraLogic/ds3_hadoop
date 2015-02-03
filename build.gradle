@@ -16,7 +16,7 @@
 
 allprojects {
     group = 'com.spectralogic.ds3-hadoop'
-    version = '0.7.2-SNAPSHOT'
+    version = '0.7.3-SNAPSHOT'
 }
 
 subprojects {
