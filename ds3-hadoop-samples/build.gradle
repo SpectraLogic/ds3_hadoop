@@ -1,8 +1,8 @@
 apply plugin:'application'
 
 // Only leave one of these options uncommented
-//mainClassName = 'com.spectralogic.hadoop.sample.PutObjects'
-mainClassName = 'com.spectralogic.hadoop.sample.GetObjects'
+mainClassName = 'com.spectralogic.hadoop.sample.PutObjects'
+//mainClassName = 'com.spectralogic.hadoop.sample.GetObjects'
 
 def hadoopVersion = '2.5.0'
 

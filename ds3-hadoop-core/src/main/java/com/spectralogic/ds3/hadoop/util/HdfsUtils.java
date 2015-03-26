@@ -1,6 +1,6 @@
 /*
  * ******************************************************************************
- *   Copyright 2014 Spectra Logic Corporation. All Rights Reserved.
+ *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
  *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *   this file except in compliance with the License. A copy of the License is located at
  *
@@ -17,23 +17,19 @@ package com.spectralogic.ds3.hadoop.util;
 
 import com.spectralogic.ds3.hadoop.Constants;
 import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
-import com.spectralogic.ds3.hadoop.HadoopConstants;
 import com.spectralogic.ds3.hadoop.mappers.FileEntry;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Objects;
 import com.spectralogic.ds3client.networking.ConnectionDetails;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.TextOutputFormat;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.mapred.lib.NullOutputFormat;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -81,7 +77,7 @@ public class HdfsUtils {
         conf.setMapperClass(mapperClass);
 
         conf.setInputFormat(TextInputFormat.class);
-        conf.setOutputFormat(TextOutputFormat.class);
+        conf.setOutputFormat(NullOutputFormat.class);
         return conf;
     }
 
@@ -120,9 +116,32 @@ public class HdfsUtils {
         try {
             obj.setName(PathUtils.stripPath(fileStatus.getPath().toString()));
         } catch (final URISyntaxException e) {
-            System.err.println("The uri passed in was invalid.  This should not happen.");
+            System.err.println("The uri passed in was invalid.  This should not happen");
         }
         obj.setSize(fileStatus.getLen());
         return obj;
+    }
+
+    /**
+     * Only delete the directory if it does not contain any other files.
+     * @param outputPath
+     */
+    public static void safeDirectoryDelete(final FileSystem hdfs, final Path outputPath) throws IOException, UnsafeDeleteException {
+        // Cleanup the result directory from any previous run
+        if (hdfs.exists(outputPath)) {
+            if (hdfs.isDirectory(outputPath)) {
+                final RemoteIterator<LocatedFileStatus> iter = hdfs.listFiles(outputPath, true);
+                while(iter.hasNext()) {
+                    final LocatedFileStatus fileStatus = iter.next();
+                    if (fileStatus.isFile() && fileStatus.getLen() != 0) {
+                        throw new UnsafeDeleteException("The result directory contains a file: " + fileStatus.toString());
+                    }
+                }
+                hdfs.delete(outputPath, true);
+            }
+            else {
+                throw new UnsafeDeleteException("The output directory is pointing to a file and not a directory");
+            }
+        }
     }
 }

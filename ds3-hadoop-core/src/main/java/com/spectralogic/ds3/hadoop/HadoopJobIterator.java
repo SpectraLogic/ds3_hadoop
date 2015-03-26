@@ -1,8 +1,24 @@
+/*
+ * ******************************************************************************
+ *   Copyright 2014-2015 Spectra Logic Corporation. All Rights Reserved.
+ *   Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *   this file except in compliance with the License. A copy of the License is located at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   or in the "license" file accompanying this file.
+ *   This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *   CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *   specific language governing permissions and limitations under the License.
+ * ****************************************************************************
+ */
+
 package com.spectralogic.ds3.hadoop;
 
 import com.spectralogic.ds3.hadoop.mappers.BulkPut;
 import com.spectralogic.ds3.hadoop.util.HdfsUtils;
 import com.spectralogic.ds3.hadoop.util.PathUtils;
+import com.spectralogic.ds3.hadoop.util.UnsafeDeleteException;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
 import com.spectralogic.ds3client.models.bulk.Objects;
@@ -44,7 +60,7 @@ public class HadoopJobIterator {
         return chunkAllocator.hasMoreChunks();
     }
 
-    public JobConf nextJobConf() throws IOException, SignatureException {
+    public JobConf nextJobConf() throws IOException, SignatureException, TransferJobException {
         final JobConf jobConf = jobConfFactory.newJobConf(this.conf, this.ds3Client.getConnectionDetails(), this.bucketName, this.jobId, BulkPut.class);
         final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
 
@@ -52,19 +68,27 @@ public class HadoopJobIterator {
         final String fileListName = PathUtils.join(options.getHadoopTmpDir(), tempFile.getName());
         final Path fileListPath = hdfs.makeQualified(new Path(fileListName));
 
+        final Path outputPath = new Path(options.getJobOutputDir());
+
         hdfs.copyFromLocalFile(new Path(tempFile.toString()), fileListPath);
 
         if (options.getPrefix() != null) {
             jobConf.set(Constants.PREFIX, options.getPrefix());
         }
 
+        try {
+            HdfsUtils.safeDirectoryDelete(hdfs, outputPath);
+        } catch (final UnsafeDeleteException e) {
+            throw new TransferJobException(e);
+        }
+
         FileInputFormat.setInputPaths(jobConf, fileListPath);
-        FileOutputFormat.setOutputPath(jobConf, hdfs.makeQualified(new Path(options.getJobOutputDir())));
+        FileOutputFormat.setOutputPath(jobConf, hdfs.makeQualified(outputPath));
 
         return jobConf;
     }
 
-    public RunningJob next() throws IOException, SignatureException {
+    public RunningJob next() throws IOException, SignatureException, TransferJobException {
         final JobConf jobConf = nextJobConf();
 
         return jobClient.submitJob(jobConf);
