@@ -29,6 +29,7 @@ public class JobOptions {
     private String hadoopTmpDir = null;
     private String jobOutputDir = null;
     private String prefix = null;
+    private int numChunks = 10;
 
     public String getHadoopTmpDir() {
         return hadoopTmpDir;
@@ -54,4 +55,11 @@ public class JobOptions {
         this.prefix = prefix;
     }
 
+    public void setNumberOfChunksPerJob(final int chunks) {
+         this.numChunks = chunks;
+    }
+
+    public int getNumberOfChunksPerJob() {
+        return this.numChunks;
+    }
 }

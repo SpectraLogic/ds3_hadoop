@@ -53,11 +53,9 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
 
     @Override
     public Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final JobOptions options) throws SignatureException, IOException, XmlProcessingException {
-
         helpers.ensureBucketExists(bucketName);
 
         final MasterObjectList result = this.client.bulkPut(new BulkPutRequest(bucketName, Lists.newArrayList(ds3Objects))).getResult();
-
         return new WriteJobImpl(client, hdfs, result, conf, options);
     }
 

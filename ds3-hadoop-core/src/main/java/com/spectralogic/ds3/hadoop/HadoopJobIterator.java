@@ -51,7 +51,7 @@ public class HadoopJobIterator {
         this.options = options;
         this.bucketName = bucketName;
         this.ds3Client = client;
-        this.chunkAllocator = new ChunkAllocator(client, masterObjectList.getObjects());
+        this.chunkAllocator = new ChunkAllocator(client, masterObjectList.getJobId(), options.getNumberOfChunksPerJob(), masterObjectList.getObjects());
         this.jobClient = new JobClient(this.conf);
         this.jobId = masterObjectList.getJobId();
     }
