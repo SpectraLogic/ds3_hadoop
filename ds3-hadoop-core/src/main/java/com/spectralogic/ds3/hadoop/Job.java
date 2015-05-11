@@ -29,7 +29,7 @@ public interface Job {
 
     public String getBucketName();
 
-    HadoopJobIterator iterator() throws IOException;
+    PutJobIterator iterator() throws IOException;
 
     public void transfer() throws IOException, SignatureException, Exception;
 }

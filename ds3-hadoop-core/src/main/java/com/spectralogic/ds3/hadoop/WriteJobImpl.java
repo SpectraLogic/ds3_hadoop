@@ -16,6 +16,7 @@
 package com.spectralogic.ds3.hadoop;
 
 
+import com.spectralogic.ds3.hadoop.mappers.BulkPut;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.models.bulk.MasterObjectList;
 import org.apache.hadoop.conf.Configuration;
@@ -67,13 +68,13 @@ class WriteJobImpl implements Job {
     }
 
     @Override
-    public HadoopJobIterator iterator() throws IOException {
-        return new HadoopJobIterator(jobConfFactory, this.ds3Client, this.conf, this.hdfs, this.options, this.bucketName, this.masterObjectList);
+    public PutJobIterator iterator() throws IOException {
+        return new PutJobIterator(jobConfFactory, this.ds3Client, this.conf, this.hdfs, this.options, this.bucketName, this.masterObjectList, BulkPut.class);
     }
 
     @Override
     public void transfer() throws Exception {
-        final HadoopJobIterator iter = this.iterator();
+        final PutJobIterator iter = this.iterator();
         while(iter.hasNext()) {
             final RunningJob job = iter.next();
             job.waitForCompletion();

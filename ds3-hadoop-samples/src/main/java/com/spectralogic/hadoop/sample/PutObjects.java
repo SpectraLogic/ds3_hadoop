@@ -21,12 +21,10 @@ import com.spectralogic.ds3.hadoop.Job;
 import com.spectralogic.ds3.hadoop.JobOptions;
 import com.spectralogic.ds3client.Ds3Client;
 import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.models.Credentials;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
@@ -49,10 +47,10 @@ public class PutObjects {
         logger.setLevel(Level.DEBUG);
         
         // Create a Ds3Client specifying the endpoint of the DS3 appliance and the credentials to use
-        final Ds3Client client = Ds3ClientBuilder.create("192.168.56.101:8080", new Credentials("c3BlY3RyYQ==", "SQfZaGsw")).withHttps(false).build();
+        final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
         
         // Creates a Hadoop Configuration Object.  It's important that all the fields this configures are set before it is used
-        final Configuration conf = Ds3HadoopHelper.createDefaultConfiguration("hdfs://172.17.0.2:9000", "172.17.0.2:8033");
+        final Configuration conf = Ds3HadoopHelper.createDefaultConfiguration("hdfs://172.17.0.4:9000", "172.17.0.4:8033");
         conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
         final UserGroupInformation usgi = UserGroupInformation.createRemoteUser("root");

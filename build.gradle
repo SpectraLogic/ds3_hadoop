@@ -46,7 +46,7 @@ subprojects {
 
 
     dependencies {
-        compile ('com.spectralogic.ds3:ds3-sdk:1.1.0-RC3:all') {
+        compile ('com.spectralogic.ds3:ds3-sdk:1.1.0-RC4:all') {
             transitive = false
         }
         testCompile 'junit:junit:4.12'
@@ -81,5 +81,5 @@ project(':ds3-hadoop-samples') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.3'
+    gradleVersion = '2.4'
 }

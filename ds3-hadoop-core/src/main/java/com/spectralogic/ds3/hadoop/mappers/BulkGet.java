@@ -22,6 +22,7 @@ import com.spectralogic.ds3client.Ds3ClientBuilder;
 import com.spectralogic.ds3client.commands.GetObjectRequest;
 import com.spectralogic.ds3client.models.Credentials;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -67,6 +68,7 @@ public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text,
         if(hadoopFs == null) {
             throw new IOException("Could not connect to the hadoop fs.");
         }
+
         final String rootPathName = PathUtils.join(PathUtils.getWorkingDirPath(hadoopFs), prefix);
         final FileEntry entry = FileEntry.fromString(value.toString());
         final String fileName = PathUtils.join(rootPathName, PathUtils.objPath(entry));
@@ -76,8 +78,10 @@ public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text,
         System.out.println("Processing file: " + entry.getFileName());
         System.out.println("Writing to file: " + fileName);
 
-        final WritableByteChannel outChannel = Channels.newChannel(hadoopFs.create(ds3FilePath));
+        final FSDataOutputStream fsOutputStream = hadoopFs.create(ds3FilePath);
 
+
+        final WritableByteChannel outChannel = Channels.newChannel(fsOutputStream);
         try {
             client.getObject(new GetObjectRequest(bucketName, entry.getFileName(), entry.getOffset(), jobId, outChannel));
         } catch (final SignatureException e) {
