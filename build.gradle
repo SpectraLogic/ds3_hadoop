@@ -40,7 +40,7 @@ subprojects {
         mavenLocal()
         mavenCentral()
         maven {
-            url 'https://spectralogic.github.io/java/repository'
+            url 'http://dl.bintray.com/spectralogic/ds3'
         }
     }
 
