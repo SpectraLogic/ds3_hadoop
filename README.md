@@ -20,7 +20,7 @@ To install the latest ds3_hadoop code either download the latest release jar fil
   <repositories>
     <repository>
       <id>Spectra-Github</id>
-      <url>https://spectralogic.github.io/java/repository</url>
+      <url>http://dl.bintray.com/spectralogic/ds3</url>
     </repository>
   </repositories>
   ...
@@ -29,7 +29,7 @@ To install the latest ds3_hadoop code either download the latest release jar fil
       <dependency>
         <groupId>com.spectralogic.ds3-hadoop</groupId>
         <artifactId>ds3-hadoop-core</artifactId>
-        <version>0.8.0-SNAPSHOT</version>
+        <version>0.8.1</version>
       </dependency>
     ...  
     </dependencies>
@@ -45,14 +45,14 @@ apply plugin: 'maven'
 repositories {
     ...
     maven {
-        url 'https://spectralogic.github.io/java/repository'
+        url 'http://dl.bintray.com/spectralogic/ds3'
     }
     ...
 }
 
 dependencies {
     ...
-    compile 'com.spectralogic.ds3-hadoop:ds3-hadoop-core:0.8.0-SNAPSHOT'
+    compile 'com.spectralogic.ds3-hadoop:ds3-hadoop-core:0.8.1'
     ...
 }
 
@@ -61,7 +61,7 @@ dependencies {
 Releases
 ========
 
-Version `0.8.0-SNAPSHOT` is available for use.  Only bulk puts are supported with this release.
+Version `0.8.1` is available for use.  Only bulk puts are supported with this release.
 
 Samples
 =======
