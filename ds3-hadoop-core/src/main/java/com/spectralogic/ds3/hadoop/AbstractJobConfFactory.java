@@ -23,6 +23,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
+import org.apache.hadoop.mapred.lib.NullOutputFormat;
 
 import java.util.UUID;
 
@@ -56,7 +57,7 @@ public abstract class AbstractJobConfFactory {
 
     public abstract JobConf createNewJobConf(final Configuration baseConfig);
 
-    JobConf newJobConf(final Configuration baseConfig, final ConnectionDetails connectionDetails, final String bucketName, final UUID jobId, final Class<? extends Mapper> mapperClass) {
+    JobConf newJobConf(final Configuration baseConfig, final ConnectionDetails connectionDetails, final JobOptions options, final String bucketName, final UUID jobId, final Class<? extends Mapper> mapperClass) {
 
         final JobConf conf = createNewJobConf(baseConfig);
 
@@ -70,13 +71,16 @@ public abstract class AbstractJobConfFactory {
         conf.set(Constants.ENDPOINT, connectionDetails.getEndpoint());
         conf.set(Constants.JOB_ID, jobId.toString());
 
+        if (options.getProxy() != null) {
+            conf.set(Constants.PROXY, options.getProxy());
+        }
+
         conf.setOutputKeyClass(Text.class);
-        conf.setOutputValueClass(LongWritable.class);
 
         conf.setMapperClass(mapperClass);
 
         conf.setInputFormat(TextInputFormat.class);
-        conf.setOutputFormat(TextOutputFormat.class);
+        conf.setOutputFormat(NullOutputFormat.class);
 
         iterationCount++;
         return conf;

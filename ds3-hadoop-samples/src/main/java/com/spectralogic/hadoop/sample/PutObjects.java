@@ -73,6 +73,10 @@ public class PutObjects {
                     final JobOptions options = JobOptions.getDefault("/tmp");
                     options.setPrefix("/user/root");
 
+                    // You can also optionally set a proxy url that the mappers should use when communicating with
+                    // a DS3 endpoint
+                    // options.setProxy("http://proxyUrl");
+
                     // This creates the DS3 transfer job to buckets 'books'
                     final Job job = helper.startWriteJob("books", objects, options);
 

@@ -15,21 +15,11 @@
 
 package com.spectralogic.ds3.hadoop.util;
 
-import com.spectralogic.ds3.hadoop.Constants;
-import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.mappers.FileEntry;
 import com.spectralogic.ds3client.models.bulk.BulkObject;
 import com.spectralogic.ds3client.models.bulk.Ds3Object;
 import com.spectralogic.ds3client.models.bulk.Objects;
-import com.spectralogic.ds3client.networking.ConnectionDetails;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.lib.NullOutputFormat;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -38,7 +28,6 @@ import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class HdfsUtils {
     public static File writeToTemp(final List<Objects> masterObjectList) throws IOException {
@@ -57,28 +46,6 @@ public class HdfsUtils {
         writer.close();
 
         return tempFile;
-    }
-
-    public static JobConf createJob(final Configuration baseConfig, final ConnectionDetails connectionDetails, final String bucketName, final UUID jobId, final Class<? extends Mapper> mapperClass) {
-        final JobConf conf = new JobConf(baseConfig, Ds3HadoopHelper.class);
-        conf.setJobName(Constants.JOB_NAME);
-
-        conf.set(Constants.HTTPS, String.valueOf(connectionDetails.isHttps()));
-        conf.set(Constants.CERTIFICATE_VERIFICATION, String.valueOf(connectionDetails.isCertificateVerification()));
-        conf.set(Constants.BUCKET, bucketName);
-        conf.set(Constants.ACCESSKEY, connectionDetails.getCredentials().getClientId());
-        conf.set(Constants.SECRETKEY, connectionDetails.getCredentials().getKey());
-        conf.set(Constants.ENDPOINT, connectionDetails.getEndpoint());
-        conf.set(Constants.JOB_ID, jobId.toString());        
-
-        conf.setOutputKeyClass(Text.class);
-        conf.setOutputValueClass(LongWritable.class);
-
-        conf.setMapperClass(mapperClass);
-
-        conf.setInputFormat(TextInputFormat.class);
-        conf.setOutputFormat(NullOutputFormat.class);
-        return conf;
     }
 
     /**

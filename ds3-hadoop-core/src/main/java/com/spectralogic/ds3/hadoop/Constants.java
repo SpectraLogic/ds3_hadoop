@@ -27,4 +27,5 @@ public class Constants {
     public static final String ENDPOINT = "ds3-endpoint";
     public static final String CERTIFICATE_VERIFICATION = "ds3-certificateVerification";
     public static final String PREFIX = "ds3-prefix";
+    public static final String PROXY = "ds3-proxy";
 }

@@ -48,6 +48,10 @@ public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text,
     @Override
     public void configure(final JobConf conf) {
         final Ds3ClientBuilder builder = Ds3ClientBuilder.create(conf.get(Constants.ENDPOINT), new Credentials(conf.get(Constants.ACCESSKEY), conf.get(Constants.SECRETKEY)));
+        final String proxy = conf.get(Constants.PROXY);
+        if (proxy != null) {
+            builder.withProxy(proxy);
+        }
         this.client = builder.withHttps(Boolean.valueOf(conf.get(Constants.HTTPS)))
                 .withCertificateVerification(Boolean.valueOf(conf.get(Constants.CERTIFICATE_VERIFICATION))).build();
         try {
@@ -79,7 +83,6 @@ public class BulkGet extends MapReduceBase implements Mapper<LongWritable, Text,
         System.out.println("Writing to file: " + fileName);
 
         final FSDataOutputStream fsOutputStream = hadoopFs.create(ds3FilePath);
-
 
         final WritableByteChannel outChannel = Channels.newChannel(fsOutputStream);
         try {

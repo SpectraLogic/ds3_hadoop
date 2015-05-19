@@ -16,7 +16,7 @@
 
 allprojects {
     group = 'com.spectralogic.ds3-hadoop'
-    version = '0.8.0-SNAPSHOT'
+    version = '0.8.1-SNAPSHOT'
 }
 
 subprojects {
@@ -46,7 +46,7 @@ subprojects {
 
 
     dependencies {
-        compile ('com.spectralogic.ds3:ds3-sdk:1.1.0-RC4:all') {
+        compile ('com.spectralogic.ds3:ds3-sdk:1.1.0-RC6:all') {
             transitive = false
         }
         testCompile 'junit:junit:4.12'

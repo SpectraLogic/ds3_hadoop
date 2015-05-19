@@ -30,6 +30,7 @@ public class JobOptions {
     private String jobOutputDir = null;
     private String prefix = null;
     private int numChunks = 10;
+    private String proxy = null;
 
     public String getHadoopTmpDir() {
         return hadoopTmpDir;
@@ -61,5 +62,13 @@ public class JobOptions {
 
     public int getNumberOfChunksPerJob() {
         return this.numChunks;
+    }
+
+    public String getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(String proxy) {
+        this.proxy = proxy;
     }
 }

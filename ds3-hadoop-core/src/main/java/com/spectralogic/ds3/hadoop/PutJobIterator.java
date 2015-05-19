@@ -62,7 +62,7 @@ public class PutJobIterator implements HadoopJobIterator {
     }
 
     public JobConf nextJobConf() throws IOException, SignatureException, TransferJobException {
-        final JobConf jobConf = jobConfFactory.newJobConf(this.conf, this.ds3Client.getConnectionDetails(), this.bucketName, this.jobId, mapperClass);
+        final JobConf jobConf = jobConfFactory.newJobConf(this.conf, this.ds3Client.getConnectionDetails(), this.options, this.bucketName, this.jobId, mapperClass);
         final List<Objects> newChunks = chunkAllocator.getAvailableChunks();
 
         final File tempFile = HdfsUtils.writeToTemp(newChunks);
