@@ -19,7 +19,7 @@ To install the latest ds3_hadoop code either download the latest release jar fil
   ...
   <repositories>
     <repository>
-      <id>Spectra-Github</id>
+      <id>Spectra</id>
       <url>http://dl.bintray.com/spectralogic/ds3</url>
     </repository>
   </repositories>
