@@ -29,10 +29,22 @@ import java.security.SignatureException;
  */
 public abstract class Ds3HadoopHelper {
 
+    /**
+     * Wrap a Ds3Client with the Ds3HadoopHelper which allows for sending requests to a Hadoop Cluster to interact with DS3
+     * @param client The Ds3Client to wrap
+     * @param hdfs The FileSystem object for the remote Hadoop Cluster, typically backed by HDFS
+     * @param configuration The base Hadoop Cluster Configuration
+     */
     public static Ds3HadoopHelper wrap(final Ds3Client client, final FileSystem hdfs, final Configuration configuration) {
         return new Ds3HadoopHelperImpl(client, hdfs, configuration);
     }
 
+    /**
+     * Initiates a Ds3 Bulk Put with files that are stored in the Hadoop FileSystem.  **Note:** this call does not send the objects
+     * @param bucketName The Ds3 bucket to send the objects to
+     * @param ds3Objects The list of objects to send that are located in the cluster
+     * @param options Options to control how the MapReduce job should behave
+     */
     public abstract Job startWriteJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
 
     public abstract Job startReadJob(final String bucketName, final Iterable<Ds3Object> ds3Objects, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
@@ -40,7 +52,9 @@ public abstract class Ds3HadoopHelper {
     public abstract Job startReadAllJob(final String bucketName, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
 
     /**
-     * This returns a Hadoop Configration object with the 'fs.default.name' set to {@param nameNode}, 'mapred.job.tracker' set to {@param jobTracker}, and 'mapreduce.framework.name' set to 'yarn'.
+     * This returns a Hadoop Configuration object with the 'fs.default.name' set to {@param nameNode}, 'mapred.job.tracker' set to {@param jobTracker}, and 'mapreduce.framework.name' set to 'yarn'.
+     * @param nameNode The url for the name node
+     * @param jobTracker The url for the job tracker where map reduce jobs will be launched
      */
     public static Configuration createDefaultConfiguration(final String nameNode, final String jobTracker) {
         final Configuration conf = new Configuration();
