@@ -9,6 +9,10 @@ A Hadoop Map/Reduce library that migrates data between a Hadoop Cluster and a DS
 
 Join us at our [Google Groups](https://groups.google.com/d/forum/spectralogicds3-sdks) forum to ask questions, or see frequently asked questions.
 
+## Javadoc
+
+The most recent javadoc can be accessed here: [Javadoc 0.8.1](http://spectralogic.github.io/ds3_hadoop/javadoc/v0.8.1/)
+
 ## Installing
 
 To install the latest ds3_hadoop code either download the latest release jar file from the [Releases](../../releases) or use the DS3 Hadoop SDK code from our pre-compiled Jars in your Maven or Gradle builds in the following way.
