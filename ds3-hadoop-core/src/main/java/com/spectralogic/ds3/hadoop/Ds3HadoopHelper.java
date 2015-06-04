@@ -52,7 +52,11 @@ public abstract class Ds3HadoopHelper {
 
     public abstract Job startReadAllJob(final String bucketName, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
 
-    public abstract Job recoverWriteJob(UUID jobId, JobOptions options) throws SignatureException, IOException, XmlProcessingException, InvalidJobStatusException;
+    /**
+     * Restarts transmitting the files for a write job.  Any files that are not "IN_CACHE" and who's chunks have
+     * not been completely written to cache will be launched in a new Hadoop Job to be transferred.
+     */
+    public abstract Job recoverWriteJob(final UUID jobId, final JobOptions options) throws SignatureException, IOException, XmlProcessingException, InvalidJobStatusException;
     /**
      * This returns a Hadoop Configuration object with the 'fs.default.name' set to {@param nameNode}, 'mapred.job.tracker' set to {@param jobTracker}, and 'mapreduce.framework.name' set to 'yarn'.
      * @param nameNode The url for the name node
