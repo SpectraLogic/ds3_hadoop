@@ -18,15 +18,11 @@ package com.spectralogic.ds3.hadoop;
 import com.google.common.collect.Lists;
 import com.spectralogic.ds3.hadoop.util.ListUtils;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.commands.BulkGetRequest;
-import com.spectralogic.ds3client.commands.BulkPutRequest;
-import com.spectralogic.ds3client.commands.GetBucketRequest;
+import com.spectralogic.ds3client.commands.*;
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import com.spectralogic.ds3client.models.Contents;
 import com.spectralogic.ds3client.models.ListBucketResult;
-import com.spectralogic.ds3client.models.bulk.ChunkClientProcessingOrderGuarantee;
-import com.spectralogic.ds3client.models.bulk.Ds3Object;
-import com.spectralogic.ds3client.models.bulk.MasterObjectList;
+import com.spectralogic.ds3client.models.bulk.*;
 import com.spectralogic.ds3client.serializer.XmlProcessingException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -35,6 +31,7 @@ import java.io.IOException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
 
@@ -83,6 +80,18 @@ class Ds3HadoopHelperImpl extends Ds3HadoopHelper {
                 getResult();
 
         return new ReadJobImpl(client, hdfs, result, conf, options);
+    }
+
+    @Override
+    public Job recoverWriteJob(final UUID jobId, final JobOptions options) throws SignatureException, IOException, XmlProcessingException, InvalidJobStatusException {
+        final GetJobResponse jobResponse = this.client.getJob(new GetJobRequest(jobId));
+        final MasterObjectList result = jobResponse.getMasterObjectList();
+
+        if (result.getStatus() != JobStatus.IN_PROGRESS) {
+            throw new InvalidJobStatusException("The job must be in the 'IN_PROGRESS' state.");
+        }
+
+        return new WriteJobImpl(client, hdfs, result, conf, options);
     }
 
     private List<Ds3Object> convertToList(final ListBucketResult bucketList) {

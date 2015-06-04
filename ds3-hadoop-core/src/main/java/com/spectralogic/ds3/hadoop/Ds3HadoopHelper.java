@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
 import java.security.SignatureException;
+import java.util.UUID;
 
 /**
  * Base class that defines Hadoop Utilities to transfer objects between DS3 and a Hadoop Cluster.
@@ -51,6 +52,7 @@ public abstract class Ds3HadoopHelper {
 
     public abstract Job startReadAllJob(final String bucketName, final JobOptions options) throws SignatureException, IOException, XmlProcessingException;
 
+    public abstract Job recoverWriteJob(UUID jobId, JobOptions options) throws SignatureException, IOException, XmlProcessingException, InvalidJobStatusException;
     /**
      * This returns a Hadoop Configuration object with the 'fs.default.name' set to {@param nameNode}, 'mapred.job.tracker' set to {@param jobTracker}, and 'mapreduce.framework.name' set to 'yarn'.
      * @param nameNode The url for the name node

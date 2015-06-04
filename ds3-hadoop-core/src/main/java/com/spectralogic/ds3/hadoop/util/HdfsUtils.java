@@ -37,6 +37,7 @@ public class HdfsUtils {
         /* TODO: We will have to update this to take into account different nodes post 1.0. */
         for(final Objects objects: masterObjectList) {
             for(final BulkObject object: objects.getObjects()) {
+                if (object.isInCache()) continue;
                 writer.printf("%s\n", FileEntry.fromBulkObject(object).toString());
             }
         }

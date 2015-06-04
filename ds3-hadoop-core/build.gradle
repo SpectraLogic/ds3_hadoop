@@ -29,6 +29,10 @@ shadowJar {
   }
 }
 
+jar {
+    from sourceSets.main.allJava
+}
+
 configurations {
   fat 
 }
