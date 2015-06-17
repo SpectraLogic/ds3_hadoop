@@ -92,6 +92,11 @@ public class PutJobIterator implements HadoopJobIterator {
     public RunningJob next() throws IOException, SignatureException, TransferJobException {
         final JobConf jobConf = nextJobConf();
 
+        return next(jobConf);
+    }
+
+    @Override
+    public RunningJob next(final JobConf jobConf) throws IOException, SignatureException, TransferJobException {
         return jobClient.submitJob(jobConf);
     }
 }
