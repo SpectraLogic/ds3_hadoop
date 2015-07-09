@@ -50,7 +50,7 @@ public class PutObjects {
         final Ds3Client client = Ds3ClientBuilder.fromEnv().withHttps(false).build();
         
         // Creates a Hadoop Configuration Object.  It's important that all the fields this configures are set before it is used
-        final Configuration conf = Ds3HadoopHelper.createDefaultConfiguration("hdfs://172.17.0.4:9000", "172.17.0.4:8033");
+        final Configuration conf = Ds3HadoopHelper.createDefaultConfiguration("hdfs://172.17.0.2:9000", "172.17.0.2:8033");
         conf.set(HadoopConstants.HADOOP_JOB_UGI, "root");
 
         final UserGroupInformation usgi = UserGroupInformation.createRemoteUser("root");

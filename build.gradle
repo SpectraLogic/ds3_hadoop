@@ -32,6 +32,7 @@ subprojects {
 
     sourceCompatibility = JavaVersion.VERSION_1_7
 
+
     compileJava {
         options.compilerArgs << '-Xlint:deprecation'
     }
@@ -46,6 +47,10 @@ subprojects {
 
 
     dependencies {
+        compile "org.apache.hadoop:hadoop-hdfs:2.6.0"
+        compile "org.apache.hadoop:hadoop-common:2.6.0"
+        compile "org.apache.hadoop:hadoop-mapreduce-client-core:2.6.0"
+
         compile ('com.spectralogic.ds3:ds3-sdk:1.1.0-RC6:all') {
             transitive = false
         }
@@ -55,8 +60,19 @@ subprojects {
 }
 
 project(':ds3-hadoop-cli') {
+    configurations {
+        libdeps
+    }
+
+    dependencies {
+        compile fileTree(dir: 'lib', include: '*.jar')
+        compile project(path: ':ds3-hadoop-core', configuration: 'fat')
+        libdeps project(path: ':ds3-hadoop-core', configuration: 'fat')
+        libdeps fileTree(dir: 'lib', include: '*.jar')
+    }
+
     task copyToLib(type: Copy) {
-        from configurations.runtime
+        from configurations.libdeps
         into "$buildDir/resources/main/lib"
     }
 
@@ -64,14 +80,10 @@ project(':ds3-hadoop-cli') {
 
     jar {
         manifest {
-            attributes("Main-Class": "com.spectralogic.ds3.hadoop.com.spectralogic.ds3.hadoop.cli.FileMigrator")
+            attributes("Main-Class": "com.spectralogic.ds3.hadoop.cli.FileMigrator")
         }
     }
 
-    dependencies {
-        compile fileTree(dir: 'lib', include: '*.jar')
-        compile project(':ds3-hadoop-core')
-    }
 }
 
 project(':ds3-hadoop-samples') {
@@ -81,5 +93,5 @@ project(':ds3-hadoop-samples') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.4'
+    gradleVersion = '2.5'
 }

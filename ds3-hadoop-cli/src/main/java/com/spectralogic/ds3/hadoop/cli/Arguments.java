@@ -30,8 +30,8 @@ public class Arguments {
     private final Configuration configuration;
 
     private String bucket;
-    private String srcDir;
-    private String destDir;
+    private String directory;
+    private String errorDirectory;
     private String endpoint;
     private String accessKey;
     private String secretKey;
@@ -40,11 +40,11 @@ public class Arguments {
     private Command command;
     private String prefix;
     private int retries = 5;
-    private URI jobTracker;
 
     public Arguments() {
         options = new Options();
-        configuration = new Configuration();
+        configuration = new Configuration(); // if ran in the hadoop cluster than the configuration does not need to be
+                                             // modified
 
         final Option ds3Endpoint = new Option("e", true, "The ds3 endpoint to connect to or have \"DS3_ENDPOINT\" set as an environment variable.");
         ds3Endpoint.setArgName("endpoint");
@@ -52,10 +52,10 @@ public class Arguments {
         certificateVerification.setLongOpt("insecure");
         final Option https = new Option(null, false, "Set if the connection should be sent over standard http and not https");
         https.setLongOpt("http");
-        final Option sourceDirectory = new Option("i", true, "The directory to copy to ds3");
-        sourceDirectory.setArgName("directory");
-        final Option destDirectory = new Option("o", true, "The output directory where any errors will be reported");
-        destDirectory.setArgName("directory");
+        final Option directory = new Option("d", true, "The directory to copy to ds3 or from ds3");
+        directory.setArgName("directory");
+        final Option errorDirectory = new Option(null, true, "The output directory where any errors will be reported, creates a temporary directory in the tmp directory if not set");
+        errorDirectory.setLongOpt("errors");
         final Option bucket = new Option("b", true, "The ds3 bucket to copy to");
         bucket.setArgName("bucket");
         final Option accessKey = new Option("a", true, "Access Key ID or have \"DS3_ACCESS_KEY\" set as an environment variable");
@@ -66,24 +66,21 @@ public class Arguments {
         command.setArgName("command");
         final Option prefix = new Option("p", true, "Specify a prefix to restore a bucket to.  This is an optional argument");
         prefix.setArgName("prefix");
-        final Option jobTracker = new Option("j", true, "Specify a remote job tracker to connect to");
-        jobTracker.setArgName("jobTracker");
         final Option redirectRetries = new Option("r", true, "Specify how many time a mapper should retry after receiving a 307 redirect.  Defaults to 5");
         redirectRetries.setArgName("redirectRetries");
         final Option help = new Option("h", "Print Help Menu");
 
         options.addOption(ds3Endpoint);
         options.addOption(certificateVerification);
-        options.addOption(sourceDirectory);
+        options.addOption(directory);
         options.addOption(https);
-        options.addOption(destDirectory);
+        options.addOption(errorDirectory);
         options.addOption(bucket);
         options.addOption(accessKey);
         options.addOption(secretKey);
         options.addOption(command);
         options.addOption(prefix);
         options.addOption(redirectRetries);
-        options.addOption(jobTracker);
         options.addOption(help);
     }
 
@@ -117,13 +114,13 @@ public class Arguments {
             this.setCertificateVerification(false);
         }
 
+        this.setDirectory(cmd.getOptionValue("d"));
         this.setBucket(cmd.getOptionValue("b"));
-        this.setDestDir(cmd.getOptionValue("o"));
-        this.setSrcDir(cmd.getOptionValue("i"));
         this.setEndpoint(cmd.getOptionValue("e"));
         this.setAccessKey(cmd.getOptionValue("a"));
         this.setSecretKey(cmd.getOptionValue("k"));
         this.setPrefix(cmd.getOptionValue("p"));
+        this.setErrorDirectory(cmd.getOptionValue("errors"));
 
         if(cmd.hasOption("r")) {
             try {
@@ -170,14 +167,6 @@ public class Arguments {
         if (!missingArgs.isEmpty()) {
             throw new MissingOptionException(missingArgs);
         }
-
-        if(cmd.hasOption("j")) {
-            try {
-                setJobTracker(new URI(cmd.getOptionValue("j")));
-            } catch (final URISyntaxException e) {
-                throw new BadArgumentException("Invalid job tracker uri", e);
-            }
-        }
     }
 
     private List<String> getMissingArgs() {
@@ -187,28 +176,7 @@ public class Arguments {
             missingArgs.add("c");
         }
 
-        if (getBucket() == null && !bucketsCommand()) {
-            missingArgs.add("b");
-        }
-
-        if (getDestDir() == null && !listCommand()) {
-            missingArgs.add("o");
-        }
-
-        if (getSrcDir() == null && getCommand() == Command.PUT) {
-            missingArgs.add("i");
-        }
-
         return missingArgs;
-    }
-
-    private boolean bucketsCommand() {
-        return getCommand() == Command.BUCKETS;
-
-    }
-
-    private boolean listCommand() {
-        return getCommand() == Command.JOBS || getCommand() == Command.OBJECTS || bucketsCommand();
     }
 
     void printHelp() {
@@ -222,22 +190,6 @@ public class Arguments {
 
     private void setBucket(String bucket) {
         this.bucket = bucket;
-    }
-
-    public String getSrcDir() {
-        return srcDir;
-    }
-
-    private void setSrcDir(String srcDir) {
-        this.srcDir = srcDir;
-    }
-
-    public String getDestDir() {
-        return destDir;
-    }
-
-    private void setDestDir(String destDir) {
-        this.destDir = destDir;
     }
 
     public String getEndpoint() {
@@ -308,11 +260,19 @@ public class Arguments {
         this.https = https;
     }
 
-    public URI getJobTracker() {
-        return jobTracker;
+    public String getDirectory() {
+        return directory;
     }
 
-    private void setJobTracker(final URI jobTracker) {
-        this.jobTracker = jobTracker;
+    void setDirectory(final String directory) {
+        this.directory = directory;
+    }
+
+    public String getErrorDirectory() {
+        return errorDirectory;
+    }
+
+    void setErrorDirectory(final String errorDirectory) {
+        this.errorDirectory = errorDirectory;
     }
 }

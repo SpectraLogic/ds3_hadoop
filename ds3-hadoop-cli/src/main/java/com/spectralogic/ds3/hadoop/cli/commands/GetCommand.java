@@ -16,21 +16,24 @@
 package com.spectralogic.ds3.hadoop.cli.commands;
 
 import com.spectralogic.ds3.hadoop.cli.Arguments;
+import com.spectralogic.ds3.hadoop.cli.Ds3Provider;
+import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
 
 public class GetCommand extends AbstractCommand {
 
-    public GetCommand(final Arguments args) throws IOException {
-        super(args);
+    public GetCommand(final Ds3Provider provider, final FileSystem hdfsFileSystem) throws IOException {
+        super(provider, hdfsFileSystem);
     }
 
     @Override
     public Boolean call() throws Exception {
-
-
-
         return true;
     }
 
+    @Override
+    public void init(final Arguments arguments) {
+
+    }
 }

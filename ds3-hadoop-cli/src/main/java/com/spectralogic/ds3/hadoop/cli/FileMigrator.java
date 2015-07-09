@@ -15,43 +15,51 @@
 
 package com.spectralogic.ds3.hadoop.cli;
 
+import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
 import com.spectralogic.ds3.hadoop.cli.commands.*;
+import com.spectralogic.ds3client.Ds3Client;
+import com.spectralogic.ds3client.Ds3ClientBuilder;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
+import com.spectralogic.ds3client.models.Credentials;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.hadoop.fs.FileSystem;
 
 import java.io.*;
 
 public class FileMigrator {
 
     private final AbstractCommand command;
+    private final Arguments arguments;
 
-    public FileMigrator(final Arguments arguments) throws IOException {
-        switch(arguments.getCommand()) {
+    public FileMigrator(final Arguments arguments, final Ds3Provider provider, final FileSystem hdfs) throws IOException {
+        this.arguments = arguments;
+        this.command = getCommand(arguments.getCommand(), provider, hdfs);
+    }
+
+    private static AbstractCommand getCommand(final Command commandType, final Ds3Provider provider, final FileSystem hdfs) throws IOException {
+        switch(commandType) {
             case PUT: {
-                command = new PutCommand(arguments);
-                break;
+                return new PutCommand(provider, hdfs);
             }
             case GET: {
-                command = new GetCommand(arguments);
-                break;
+                return new GetCommand(provider, hdfs);
             }
             case JOBS: {
-                command = new JobListCommand(arguments);
-                break;
+                return new ListJobsCommand(provider, hdfs);
             }
             case BUCKETS: {
-                command = new BucketsCommand(arguments);
-                break;
+                return new BucketsCommand(provider, hdfs);
             }
             case OBJECTS:
             default: {
-                command = new ObjectsCommand(arguments);
-                break;
+                return new ObjectsCommand(provider, hdfs);
             }
         }
     }
 
     void run() throws Exception {
+        command.init(arguments);
         command.call();
     }
 
@@ -68,7 +76,11 @@ public class FileMigrator {
     public static void main(final String args[]) throws Exception {
         try {
             final Arguments arguments = processArgs(args);
-            final FileMigrator migrator = new FileMigrator(arguments);
+            final Ds3Client client = createClient(arguments);
+
+            final FileSystem hdfs = FileSystem.get(arguments.getConfiguration());
+            final Ds3Provider provider = new Ds3Provider(client, Ds3ClientHelpers.wrap(client), Ds3HadoopHelper.wrap(client, hdfs, arguments.getConfiguration()));
+            final FileMigrator migrator = new FileMigrator(arguments, provider, hdfs);
 
             migrator.run();
         }
@@ -76,6 +88,17 @@ public class FileMigrator {
             System.out.println("Error: " + e.getMessage());
             System.out.println("See the help command for a list of required arguments.");
         }
+    }
+
+    private static Ds3Client createClient(final Arguments args) {
+        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(args.getEndpoint(), new Credentials(args.getAccessKey(), args.getSecretKey()));
+        builder.withHttps(args.isHttps())
+                .withCertificateVerification(args.isCertificateVerification())
+                .withRedirectRetries(args.getRedirectRetries());
+
+        //TODO need to add proxy support
+
+        return builder.build();
     }
 
 }

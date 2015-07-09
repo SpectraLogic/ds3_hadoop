@@ -16,15 +16,10 @@
 apply plugin:'application'
 
 // Only leave one of these options uncommented
-//mainClassName = 'com.spectralogic.hadoop.sample.PutObjects'
-mainClassName = 'com.spectralogic.hadoop.sample.TestPutJobRecovery'
+mainClassName = 'com.spectralogic.hadoop.sample.PutObjects'
+//mainClassName = 'com.spectralogic.hadoop.sample.TestPutJobRecovery'
 //mainClassName = 'com.spectralogic.hadoop.sample.GetObjects'
 
-def hadoopVersion = '2.5.0'
-
 dependencies {
-    compile "org.apache.hadoop:hadoop-mapreduce-client-jobclient:2.5.0"
-    compile "org.apache.hadoop:hadoop-hdfs:2.5.0"
-    compile "org.apache.hadoop:hadoop-common:2.5.0"
-    compile "org.apache.hadoop:hadoop-mapreduce-client-core:2.5.0"
+    runtime "org.apache.hadoop:hadoop-mapreduce-client-jobclient:2.6.0"
 }

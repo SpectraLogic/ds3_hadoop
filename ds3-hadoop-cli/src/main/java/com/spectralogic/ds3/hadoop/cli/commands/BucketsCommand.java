@@ -17,21 +17,22 @@ package com.spectralogic.ds3.hadoop.cli.commands;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
+import com.spectralogic.ds3.hadoop.cli.Ds3Provider;
 import com.spectralogic.ds3client.commands.GetServiceRequest;
 import com.spectralogic.ds3client.commands.GetServiceResponse;
 import com.spectralogic.ds3client.models.Bucket;
 import com.spectralogic.ds3client.models.ListAllMyBucketsResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3.hadoop.cli.Arguments;
-import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
 import java.util.List;
 
 public class BucketsCommand extends AbstractCommand {
 
-    public BucketsCommand(final Arguments arguments) throws IOException {
-        super(arguments);
+    public BucketsCommand(final Ds3Provider provider, final FileSystem hdfsFileSystem) throws IOException {
+        super(provider, hdfsFileSystem);
     }
 
     @Override
@@ -68,5 +69,10 @@ public class BucketsCommand extends AbstractCommand {
                 new ASCIITableHeader("Bucket Name", ASCIITable.ALIGN_LEFT),
                 new ASCIITableHeader("Creation Date", ASCIITable.ALIGN_RIGHT)
             };
+    }
+
+    @Override
+    public void init(final Arguments arguments) {
+
     }
 }

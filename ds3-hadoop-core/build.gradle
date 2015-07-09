@@ -15,14 +15,6 @@
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
-def hadoopVersion = '2.6.0'
-
-dependencies {
-    compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
-    compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"
-    compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
-}
-
 shadowJar {
   dependencies {
     include(dependency('com.spectralogic.ds3:ds3-sdk:1.1.0-RC6:all'))

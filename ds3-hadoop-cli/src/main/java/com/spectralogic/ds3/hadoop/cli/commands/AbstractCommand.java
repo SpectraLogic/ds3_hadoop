@@ -15,76 +15,41 @@
 
 package com.spectralogic.ds3.hadoop.cli.commands;
 
+import com.spectralogic.ds3.hadoop.Ds3HadoopHelper;
+import com.spectralogic.ds3.hadoop.cli.Ds3Provider;
 import com.spectralogic.ds3client.Ds3Client;
-import com.spectralogic.ds3client.Ds3ClientBuilder;
-import com.spectralogic.ds3client.models.*;
 import com.spectralogic.ds3.hadoop.cli.Arguments;
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers;
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractCommand implements Callable<Boolean> {
 
     private final FileSystem hdfs;
-    private final Ds3Client ds3Client;
-    private final String bucket;
+    private final Ds3Provider provider;
 
-    private final String inputDirectory;
-    private final String outputDirectory;
-    private URI jobTracker;
-
-    AbstractCommand(final Arguments arguments) throws IOException {
-        final Ds3ClientBuilder builder = Ds3ClientBuilder.create(arguments.getEndpoint(), new Credentials(arguments.getAccessKey(), arguments.getSecretKey()));
-        this.ds3Client = builder.withCertificateVerification(arguments.isCertificateVerification())
-                .withRedirectRetries(arguments.getRedirectRetries())
-                .withHttps(arguments.isHttps())
-                .build();
-
-        //These args should only be null on list commands.
-        if(arguments.getSrcDir() != null) {
-            this.inputDirectory = arguments.getSrcDir();
-        }
-        else {
-            this.inputDirectory = null;
-        }
-        if(arguments.getDestDir() != null) {
-            this.outputDirectory = arguments.getDestDir();
-        }
-        else {
-            this.outputDirectory = null;
-        }
-
-        this.jobTracker = arguments.getJobTracker();
-
-        this.bucket = arguments.getBucket();
-
-        this.hdfs = FileSystem.get(arguments.getConfiguration());
+    AbstractCommand(final Ds3Provider provider, final FileSystem hdfsFileSystem) throws IOException {
+        this.provider = provider;
+        this.hdfs = hdfsFileSystem;
     }
 
     FileSystem getHdfs() {
         return hdfs;
     }
 
-    String getBucket() {
-        return bucket;
-    }
-
     Ds3Client getDs3Client() {
-        return ds3Client;
+        return provider.getClient();
     }
 
-    String getInputDirectory() {
-        return inputDirectory;
+    Ds3ClientHelpers getDs3ClientHelpers() {
+        return provider.getHelpers();
     }
 
-    String getOutputDirectory() {
-        return outputDirectory;
+    Ds3HadoopHelper getDs3HadoopHelper() {
+        return provider.getHadoopHelper();
     }
 
-    URI getJobTracker() {
-
-        return jobTracker;
-    }
+    public abstract void init(final Arguments arguments);
 }

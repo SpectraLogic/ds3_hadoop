@@ -16,13 +16,20 @@
 package com.spectralogic.ds3.hadoop.cli.commands;
 
 import com.spectralogic.ds3.hadoop.cli.Arguments;
-import org.apache.hadoop.mapred.JobConf;
+import com.spectralogic.ds3.hadoop.cli.Ds3Provider;
+import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
 
-public class JobListCommand extends AbstractCommand {
-    public JobListCommand(Arguments arguments) throws IOException {
-        super(arguments);
+public class ListJobsCommand extends AbstractCommand {
+
+    public ListJobsCommand(final Ds3Provider provider, final FileSystem hdfsFileSystem) throws IOException {
+        super(provider, hdfsFileSystem);
+    }
+
+    @Override
+    public void init(final Arguments arguments) {
+
     }
 
     @Override

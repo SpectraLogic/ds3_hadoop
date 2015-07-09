@@ -18,30 +18,35 @@ package com.spectralogic.ds3.hadoop.cli.commands;
 
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
-import com.spectralogic.ds3client.commands.GetBucketRequest;
+import com.spectralogic.ds3.hadoop.cli.Ds3Provider;
 import com.spectralogic.ds3client.models.Contents;
-import com.spectralogic.ds3client.models.ListBucketResult;
 import com.spectralogic.ds3client.networking.FailedRequestException;
 import com.spectralogic.ds3.hadoop.cli.Arguments;
-import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class ObjectsCommand extends AbstractCommand {
-    public ObjectsCommand(Arguments arguments) throws IOException {
-        super(arguments);
+
+    private String bucketName;
+
+    public ObjectsCommand(final Ds3Provider provider, final FileSystem hdfsFileSystem) throws IOException {
+        super(provider, hdfsFileSystem);
     }
 
     @Override
     public Boolean call() throws Exception {
         try {
-            final ListBucketResult fileList = getDs3Client().getBucket(new GetBucketRequest(getBucket())).getResult();
-            if(fileList.getContentsList() == null) {
-                System.out.println("No objects were reported in the bucket.");
+
+            final Iterable<Contents> objects = this.getDs3ClientHelpers().listObjects(this.bucketName);
+            final Iterator<Contents> objIter = objects.iterator();
+            if(objIter.hasNext()) {
+                ASCIITable.getInstance().printTable(getHeaders(), formatBucketList(objIter));
             }
             else {
-                ASCIITable.getInstance().printTable(getHeaders(), formatBucketList(fileList));
+                System.out.println("No objects were reported in the bucket.");
             }
         }
         catch(final FailedRequestException e) {
@@ -58,22 +63,22 @@ public class ObjectsCommand extends AbstractCommand {
         return true;
     }
 
-    private String[][] formatBucketList(final ListBucketResult listBucketResult) {
-        final List<Contents> contentList = listBucketResult.getContentsList();
-        final String[][] formatArray = new String[contentList.size()][];
+    private String[][] formatBucketList(final Iterator<Contents> objects) {
+        final ArrayList<String[]> formatArray = new ArrayList<>();
+        Contents content;
+        while(objects.hasNext()) {
 
-        for(int i = 0; i < contentList.size(); i++) {
-            final Contents content = contentList.get(i);
+            content = objects.next();
             final String[] arrayEntry = new String[5];
             arrayEntry[0] = content.getKey();
             arrayEntry[1] = Long.toString(content.getSize());
             arrayEntry[2] = content.getOwner().getDisplayName();
             arrayEntry[3] = nullGuard(content.getLastModified());
             arrayEntry[4] = nullGuard(content.geteTag());
-            formatArray[i] = arrayEntry;
+            formatArray.add(arrayEntry);
         }
 
-        return formatArray;
+        return formatArray.toArray(new String[formatArray.size()][]);
     }
 
     private ASCIITableHeader[] getHeaders() {
@@ -91,5 +96,13 @@ public class ObjectsCommand extends AbstractCommand {
             return "N/A";
         }
         return message;
+    }
+
+    @Override
+    public void init(final Arguments arguments) {
+        this.bucketName = arguments.getBucket();
+        if (this.bucketName == null) {
+            throw new IllegalArgumentException("Error: Missing bucket name.  Please use '-b' to set the bucket name");
+        }
     }
 }
